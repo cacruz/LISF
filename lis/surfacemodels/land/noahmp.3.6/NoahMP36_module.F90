@@ -314,6 +314,16 @@ module NoahMP36_module
 !     snow fraction in precipitation. unit: -
 !   \item[sfcheadrt]
 !     extra output for WRF-HYDRO. unit: m
+!   \item[t1]
+!     skin temperature. unit: (K)
+!   \item[eta_kinematic]
+!     actual latent heat flux. unit: (Kg m-2 s-1)
+!   \item[qle]
+!     latent heat flux. unit: (W m-2)
+!   \item[z0]
+!     roughness length. unit: (m)
+!   \item[soilrz]
+!     root zone soil column water content (kg m-2)
 !   \item[sigma_sm]
 !     standard deviation of soil moisture. unit: %
 !   \item[topt]
@@ -667,6 +677,28 @@ module NoahMP36_module
      ! used for constraints on calibratable parameters for OPTUE ! SY
      !-------------------------------------------------------------------------
      real               :: smcdry ! SY: Not used by NoahMP3.6 from REDPRM, but read in from table
+     ! --- begin NU-WRF
+     real               :: t1
+     real               :: eta_kinematic
+     real               :: qle
+     real               :: z0
+     real               :: znt
+     real               :: qsfc
+     real               :: rootmoist
+     real               :: q1
+     real               :: q2sat
+     real               :: qsb
+     real               :: qs
+     real               :: xice
+     real               :: cmc
+     real               :: cmcmax
+     real               :: soilm
+     real               :: chs2
+     real               :: cqs2
+     real               :: soilrz
+     real               :: z
+     real, allocatable  :: relsmc(:)
+     ! --- end NU-WRF
 
   end type noahmp36dec
 end module NoahMP36_module
