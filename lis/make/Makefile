@@ -6,7 +6,7 @@ RM := rm -f
 
 # Define functions
 make-clean := $(RM) *.o *.mod LIS
-make-real-clean := $(RM) *.o *.mod LIS *.d Filepath
+make-real-clean := $(RM) *.o *.mod LIS *.d Filepath *.a
 COUPLED:=$(shell grep -E '^\#[[:space:]]*define[[:space:]]+COUPLED' LIS_misc.h)
 append_offline := $(if $(COUPLED),,ex -sc '$$s;$$; ../offline;|wq' Filepath)
 
@@ -21,9 +21,12 @@ Filepath: default.cfg user.cfg LIS_misc.h
 	@echo Generating Filepath
 ifeq ($(BUILD_LIS),yes)
 	$(call make-real-clean)
-endif
 	./plugins.py
 	$(call append_offline)
+else
+	./plugins.py
+	$(call append_offline)
+endif
 ifeq "$(require-filepath)" "true"
    include ./Filepath
 endif

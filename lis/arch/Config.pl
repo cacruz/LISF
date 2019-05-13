@@ -703,9 +703,9 @@ elsif($sys_arch eq "linux_absoft") {
 elsif($sys_arch eq "linux_lf95") {
 }
 elsif($sys_arch eq "linux_gfortran") {
-   $cflags = "-c ".$sys_opt." -DGFORTRAN -DLINUX";
-   $fflags77= "-c ".$sys_opt." ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
-   $fflags ="-c -ffree-line-length-0 ".$sys_opt." ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
+   $cflags = "-c ".$sys_c_opt." -DGFORTRAN -DLINUX";
+   $fflags77= "-c ".$sys_opt." -fbacktrace ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
+   $fflags ="-c -ffree-line-length-0 ".$sys_opt." -fbacktrace ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
    $ldflags= " -L\$(LIB_ESMF) -lesmf -lstdc++";
    $ldflags = $ldflags." -L\$(LIB_ZLIB) -lz";
 }
