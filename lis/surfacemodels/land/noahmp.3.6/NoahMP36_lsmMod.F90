@@ -5,7 +5,7 @@
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
-!#include "LIS_misc.h"
+#include "LIS_misc.h"
 module NoahMP36_lsmMod
 !BOP
 !
@@ -226,12 +226,14 @@ module NoahMP36_lsmMod
         integer            :: st_flag
         integer            :: sc_idx
         integer            :: iz0tlnd
+        integer            :: forcing_ch
         !real               :: zlvl
         type(NoahMP36dec), pointer :: noahmp36(:)
     end type NoahMP36_type_dec
 
     type(NoahMP36_type_dec), pointer :: NOAHMP36_struc(:)
- 
+    save
+    
 contains 
 
 !BOP
@@ -283,6 +285,7 @@ contains
             enddo
             ! allocate memory for state variables
             do t=1, LIS_rc%npatch(n, LIS_rc%lsm_index)
+                allocate(NOAHMP36_struc(n)%noahmp36(t)%relsmc( NOAHMP36_struc(n)%nsoil + NOAHMP36_struc(n)%nsnow))
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%sstc( NOAHMP36_struc(n)%nsoil + NOAHMP36_struc(n)%nsnow))
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%sh2o(NOAHMP36_struc(n)%nsoil))
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%smc(NOAHMP36_struc(n)%nsoil))
@@ -312,6 +315,10 @@ contains
                 NOAHMP36_struc(n)%noahmp36(t)%albd = -9999.0
                 NOAHMP36_struc(n)%noahmp36(t)%albi = -9999.0
                 NOAHMP36_struc(n)%noahmp36(t)%alb_upd_flag = .false.
+                NOAHMP36_struc(n)%noahmp36(t)%z0 = 0.0
+                NOAHMP36_struc(n)%noahmp36(t)%albedo = 0.0
+                NOAHMP36_struc(n)%noahmp36(t)%ch = 0.0
+                NOAHMP36_struc(n)%noahmp36(t)%fveg = 0.0                
             enddo ! end of tile (t) loop
 !------------------------------------------------------------------------
 ! Model timestep Alarm
@@ -337,6 +344,13 @@ contains
             allocate(LIS_sfmodel_struc(n)%lyrthk(NOAHMP36_struc(n)%nsoil))
             LIS_sfmodel_struc(n)%lyrthk(:) = NOAHMP36_struc(n)%sldpth(:) 
             LIS_sfmodel_struc(n)%ts = NOAHMP36_struc(n)%ts
+
+            do t = 1,LIS_rc%npatch(n,LIS_rc%lsm_index)
+               noahmp36_struc(n)%noahmp36(t)%cqs2 = LIS_rc%udef
+               noahmp36_struc(n)%noahmp36(t)%qsfc = LIS_rc%udef
+               noahmp36_struc(n)%noahmp36(t)%q1 = -0.5
+            enddo
+
         enddo
     end subroutine NoahMP36_ini
 end module NoahMP36_lsmMod
