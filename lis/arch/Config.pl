@@ -670,6 +670,13 @@ if($use_lapack == 1) {
    }
 }
 
+# NU-WRF hack
+if(defined($ENV{LIBDIR_TAG})){
+    $sys_zlib_path = $ENV{LIBDIR_TAG};
+    $lib = "/zlib/lib";
+    $lib_zlib=$sys_zlib_path.$lib;
+}
+
 if($ENV{ESMF_TRACE} > 0){
    $use_esmf_trace = 1 
 }
@@ -699,7 +706,8 @@ elsif($sys_arch eq "linux_gfortran") {
    $cflags = "-c ".$sys_c_opt." -DGFORTRAN -DLINUX";
    $fflags77= "-c ".$sys_opt." -fbacktrace ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
    $fflags ="-c -ffree-line-length-0 ".$sys_opt." -fbacktrace ".$sys_par." ".$sys_endian." -DHIDE_SHR_MSG -DNO_SHR_VMATH -DGFORTRAN -DLINUX ".$sys_par_d." -I\$(MOD_ESMF)";
-   $ldflags= " -L\$(LIB_ESMF) -lesmf -lstdc++ -lz";
+   $ldflags= " -L\$(LIB_ESMF) -lesmf -lstdc++";
+   $ldflags = $ldflags." -L\$(LIB_ZLIB) -lz";
 }
 elsif($sys_arch eq "Darwin_gfortran") {
    $cflags = "-c ".$sys_c_opt." -DGFORTRAN";
@@ -834,6 +842,7 @@ printf conf_file "%s%s\n","LIB_PROF_UTIL   = $lib_crtm_prof";
 printf conf_file "%s%s\n","INC_CMEM        = $inc_cmem";
 printf conf_file "%s%s\n","LIB_CMEM        = $lib_cmem";
 printf conf_file "%s%s\n","LIB_LAPACK      = $lib_lapack";
+printf conf_file "%s%s\n","LIB_ZLIB        = $lib_zlib";
 printf conf_file "%s%s\n","CFLAGS          = $cflags";
 printf conf_file "%s%s\n","FFLAGS77        = $fflags77";
 printf conf_file "%s%s\n","FFLAGS          = $fflags";
