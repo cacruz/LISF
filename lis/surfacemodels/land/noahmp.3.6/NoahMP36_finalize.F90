@@ -43,6 +43,7 @@ subroutine NoahMP36_finalize(n)
             deallocate(NOAHMP36_struc(n)%noahmp36(t)%zss)
             deallocate(NOAHMP36_struc(n)%noahmp36(t)%snowice)
             deallocate(NOAHMP36_struc(n)%noahmp36(t)%snowliq)
+            deallocate(NOAHMP36_struc(n)%noahmp36(t)%relsmc)
         end do  ! tile loop
  
         ! free memory for noahmp36, the data at tile level

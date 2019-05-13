@@ -636,6 +636,7 @@ contains
                    STMASS  , WOOD    , STBLCP  , FASTCP  , LAI     , SAI     , & ! IN/OUT : 
                    CM      , CH      , TAUSS   ,                               & ! IN/OUT : 
                    SMCWTD  ,DEEPRECH , RECH    ,                               & ! IN/OUT :
+                   Z0WRF   ,                                                   & ! IN/OUT :
                    FSA     , FSR     , FIRA    , FSH     , SSOIL   , FCEV    , & ! OUT : 
                    FGEV    , FCTR    , ECAN    , ETRAN   , EDIR    , TRAD    , & ! OUT :
                    SUBSNOW ,                                                   & ! OUT :
@@ -741,6 +742,7 @@ contains
   REAL,                            INTENT(INOUT) :: SMCWTD !soil water content between bottom of the soil and water table [m3/m3]
   REAL,                            INTENT(INOUT) :: DEEPRECH !recharge to or from the water table when deep [m]
   REAL,                            INTENT(INOUT) :: RECH !recharge to or from the water table when shallow [m] (diagnostic)
+  REAL,                            INTENT(INOUT) :: Z0WRF
 
 ! output
   REAL                           , INTENT(OUT)   :: FSA    !total absorbed solar radiation (w/m2)
@@ -968,6 +970,7 @@ contains
                  ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                  FVEG   ,                                         & !in
                  QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,iloc, jloc , & !in
+                 Z0WRF  ,                                         &
                  IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                  SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                  TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1347,6 +1350,7 @@ contains
                      ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                      FVEG   ,                                         & !in
                      QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,ILOC   , JLOC, & !in
+                     Z0WRF  ,                                         &
                      IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                      SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                      TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1465,6 +1469,7 @@ contains
 !jref:end
 
 ! outputs
+  REAL   , DIMENSION(-NSNOW+1:NSOIL), INTENT(OUT)   :: Z0WRF 
   INTEGER, DIMENSION(-NSNOW+1:NSOIL), INTENT(OUT)   :: IMELT  !phase change index [1-melt; 2-freeze]
   REAL   , DIMENSION(-NSNOW+1:    0), INTENT(OUT)   :: SNICEV !partial volume ice [m3/m3]
   REAL   , DIMENSION(-NSNOW+1:    0), INTENT(OUT)   :: SNLIQV !partial volume liq. water [m3/m3]
@@ -1894,6 +1899,7 @@ contains
         RSSHA = 0.0
         TGV   = TGB
         CHV   = CHB
+        Z0WRF = Z0MG
     END IF
 
     FIRE = LWDN + FIRA

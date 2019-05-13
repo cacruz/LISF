@@ -43,7 +43,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
                             zwt     , wa      , wt      , wslake  , lfmass  , rtmass  , & ! in/out : 
                             stmass  , wood    , stblcp  , fastcp  , lai     , sai     , & ! in/out : 
                             cm      , ch      , tauss   ,                               & ! in/out : 
-                            smcwtd  ,deeprech , rech    ,                               & ! in/out :
+                            smcwtd  ,deeprech , rech    , z0                          , & ! in/out :
                             fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                             fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
                             subsnow ,                                                   & ! out :
@@ -231,6 +231,8 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real, intent(inout) :: smcwtd               ! soil water content between bottom of the soil and water table [m^3 m-3]
   real, intent(inout) :: deeprech             ! recharge to or from the water table when deep [m]
   real, intent(inout) :: rech                 ! recharge to or from the water table when shallow [m]
+  real, intent(inout) :: z0
+  real, intent(inout) :: znt
   real,   intent(out) :: fsa                  ! total absorbed solar radiation [W m-2]
   real,   intent(out) :: fsr                  ! total reflected solar radiation [W m-2] 
   real,   intent(out) :: fira                 ! total net longwave radiation to atmosphere [W m-2] 
@@ -337,6 +339,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real    :: qsfc
   real    :: qc             ! cloud water mixing ratio, unit [-], not actually used? 
   real    :: psfc
+  real    :: z0wrf
   integer :: snl_idx
 #if(LIS_NoahMP_TEST)
   write(*,*) " Noah model landuse parameter table: ",  landuse_tbl_name    
@@ -545,6 +548,8 @@ subroutine noahmp_driver_36(iloc, jloc, &
   foln    = 1.0              ! foliage nitrogen, (fraction) a kind of forcing from WRF? 
                              ! in simple driver, it is set to 1.0. In NoahMP code, it 
                              ! is just input (check intent) 
+  z0wrf   = 0.002
+
   call  noahmp_sflx_36 (                                                   &
                iloc    , jloc    , lat     , yearlen , julian  , cosz    , & ! in : time/space-related
                dt      , dx      , upd_alb_flag,albd_in, albi_in, &
@@ -562,7 +567,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
                zwt     , wa      , wt      , wslake  , lfmass  , rtmass  , & ! in/out : 
                stmass  , wood    , stblcp  , fastcp  , lai     , sai     , & ! in/out : 
                cm      , ch      , tauss   ,                               & ! in/out : 
-               smcwtd  , deeprech, rech    ,                               & ! in/out :
+               smcwtd  , deeprech, rech    , z0wrf                       , & ! in/out :
                fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
                subsnow ,                                                   & ! out :
@@ -590,7 +595,9 @@ subroutine noahmp_driver_36(iloc, jloc, &
   zss(1:nsnow+nsoil)  = zsnso(-nsnow+1:nsoil) 
   snowice(1:nsnow)    = snice(-nsnow+1:0)     
   snowliq(1:nsnow)    = snliq(-nsnow+1:0)     
-  
+  z0                  = z0wrf
+  znt                 = z0wrf
+
   deallocate(zsoil)
   deallocate(ficeold)
   deallocate(zsnso)
