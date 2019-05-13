@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import StringIO
-import ConfigParser
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+try:
+    import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
 
 '''
    This program processes the default configuration file, default.cfg,
@@ -50,11 +56,13 @@ plugins
 interp
 '''
 
-
 #
 # Process sections and enable/disable table
 #
-config = ConfigParser.SafeConfigParser()
+try:
+    config = ConfigParser.SafeConfigParser()
+except AttributeError:
+    config = ConfigParser()
 config.read('default.cfg')
 
 try:
@@ -131,7 +139,10 @@ fpath = ' ../{0}'
 dentry = '#{0} {1}\n'
 
 filepath.write('dirs := .')
-paths = StringIO.StringIO(required_filepath)
+try:
+   paths = StringIO.StringIO(required_filepath)
+except AttributeError:
+   paths = StringIO(required_filepath)
 for line in paths:
    filepath.write(fpath.format(line.strip()))
 
