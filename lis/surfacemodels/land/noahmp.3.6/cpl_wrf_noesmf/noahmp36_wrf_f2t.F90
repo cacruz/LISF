@@ -20,7 +20,7 @@ subroutine noahmp36_wrf_f2t(n)
   use LIS_coreMod ,      only : LIS_rc,LIS_surface
   use LIS_metforcingMod, only : LIS_FORC_State
   use LIS_FORC_AttributesMod
-  use LIS_logMod
+  use LIS_logMod,         only : LIS_verify, LIS_trace
   use noahmp36_lsmMod,        only : noahmp36_struc
 
   implicit none
