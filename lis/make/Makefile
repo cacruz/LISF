@@ -74,7 +74,7 @@ LIBTARGET    =  explis
 TARGETDIR    =  ./
 $(LIBTARGET) : 
 		gmake -i -r lis_contrib                  ; \
-		$(AR) -ru ../../main/libwrflib.a $(OBJS) ; \
+		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS) ; \
 
 LIBTARGET    =  gcelis
 TARGETDIR    =  ./
