@@ -883,7 +883,7 @@ subroutine NoahMP36_main(n)
             NOAHMP36_struc(n)%noahmp36(t)%albd         = tmp_albd
             NOAHMP36_struc(n)%noahmp36(t)%albi         = tmp_albi  
             NOAHMP36_struc(n)%noahmp36(t)%z0           = tmp_z0
-            NOAHMP36_struc(n)%noahmp36(t)%znt          = tmp_znt  
+            NOAHMP36_struc(n)%noahmp36(t)%znt          = tmp_znt
 
             ![ 1] output variable: soil_temp (unit=K). ***  soil layer temperature
             soil_temp(1:NOAHMP36_struc(n)%nsoil) = NOAHMP36_struc(n)%noahmp36(t)%sstc(NOAHMP36_struc(n)%nsnow+1 : NOAHMP36_struc(n)%nsoil+NOAHMP36_struc(n)%nsnow)
