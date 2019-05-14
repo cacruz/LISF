@@ -541,6 +541,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
                              ! in simple driver, it is set to 1.0. In NoahMP code, it 
                              ! is just input (check intent) 
   z0wrf = 0.002
+
   call  noahmp_sflx_36 (                                                   &
                iloc    , jloc    , lat     , yearlen , julian  , cosz    , & ! in : time/space-related
                dt      , dx      , upd_alb_flag,albd_in, albi_in, &
