@@ -489,6 +489,8 @@ subroutine NoahMP36_main(n)
             tmp_smcwtd      = NOAHMP36_struc(n)%noahmp36(t)%smcwtd
             tmp_deeprech    = NOAHMP36_struc(n)%noahmp36(t)%deeprech
             tmp_rech        = NOAHMP36_struc(n)%noahmp36(t)%rech
+            tmp_z0          = NOAHMP36_struc(n)%noahmp36(t)%z0
+            tmp_znt         = NOAHMP36_struc(n)%noahmp36(t)%znt
             tmp_zlvl        = NOAHMP36_struc(n)%noahmp36(t)%zlvl
             tmp_albd      = NOAHMP36_struc(n)%noahmp36(t)%albd
             tmp_albi      = NOAHMP36_struc(n)%noahmp36(t)%albi
@@ -716,6 +718,8 @@ subroutine NoahMP36_main(n)
                                   tmp_smcwtd            , & ! inout - soil water content between bottom of the soil and water table [m^3 m-3]
                                   tmp_deeprech          , & ! inout - recharge to or from the water table when deep [m]
                                   tmp_rech              , & ! inout - recharge to or from the water table when shallow [m]
+                                  tmp_z0                , & ! inout - background roughness length [m]
+                                  tmp_znt               , & ! inout - thermal time-varying roughness length [m]
                                   tmp_fsa               , & ! out   - total absorbed solar radiation [W m-2]
                                   tmp_fsr               , & ! out   - total reflected solar radiation [W m-2]
                                   tmp_fira              , & ! out   - total net longwave radiation to atmosphere [W m-2]
@@ -776,7 +780,7 @@ subroutine NoahMP36_main(n)
                                   tmp_chb2              , & ! out   - sensible heat exchange coefficient over bare-ground [-]
                                   tmp_fpice             , & ! out   - snow fraction in precipitation [-]
                                   tmp_sfcheadrt         )   ! out   - extra output for WRF-HYDRO [m]
-            
+
             ! save state variables from local variables to global variables
             NOAHMP36_struc(n)%noahmp36(t)%albold      = tmp_albold
             NOAHMP36_struc(n)%noahmp36(t)%sneqvo      = tmp_sneqvo
@@ -879,7 +883,7 @@ subroutine NoahMP36_main(n)
             NOAHMP36_struc(n)%noahmp36(t)%albd         = tmp_albd
             NOAHMP36_struc(n)%noahmp36(t)%albi         = tmp_albi  
             NOAHMP36_struc(n)%noahmp36(t)%z0           = tmp_z0
-            NOAHMP36_struc(n)%noahmp36(t)%znt          = tmp_znt  
+            NOAHMP36_struc(n)%noahmp36(t)%znt          = tmp_znt
 
             ![ 1] output variable: soil_temp (unit=K). ***  soil layer temperature
             soil_temp(1:NOAHMP36_struc(n)%nsoil) = NOAHMP36_struc(n)%noahmp36(t)%sstc(NOAHMP36_struc(n)%nsnow+1 : NOAHMP36_struc(n)%nsoil+NOAHMP36_struc(n)%nsnow)

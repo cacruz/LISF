@@ -970,7 +970,6 @@ contains
                  ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                  FVEG   ,                                         & !in
                  QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,iloc, jloc , & !in
-                 Z0WRF  ,                                         &
                  IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                  SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                  TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -985,7 +984,8 @@ contains
                  T2MV   ,T2MB   ,FSRV   , &
                  FSRG   ,RSSUN  ,RSSHA  ,BGAP   ,WGAP, TGV,TGB,   &
                  Q1     ,Q2V    ,Q2B    ,Q2E    ,CHV   ,CHB     , & !out
-                 EMISSI,&
+                 EMISSI ,                                         &
+                 Z0WRF  ,                                         &
                  SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2 ) !out
 !jref:end
     SICE(:) = MAX(0.0, SMC(:) - SH2O(:))   
@@ -1350,7 +1350,6 @@ contains
                      ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                      FVEG   ,                                         & !in
                      QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,ILOC   , JLOC, & !in
-                     Z0WRF  ,                                         &
                      IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                      SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                      TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1365,6 +1364,7 @@ contains
                      T2MV   ,T2MB   ,FSRV   , &
                      FSRG   ,RSSUN  ,RSSHA  ,BGAP   ,WGAP,TGV,TGB,&
                      Q1     ,Q2V    ,Q2B    ,Q2E    ,CHV  ,CHB, EMISSI,&
+                     Z0WRF  ,                                         &
                      SHG,SHC,SHB,EVG,EVB,GHV,GHB,IRG,IRC,IRB,TR,EVC,CHLEAF,CHUC,CHV2,CHB2 )   !out 
 !jref:end                            
 
@@ -1469,7 +1469,6 @@ contains
 !jref:end
 
 ! outputs
-  REAL   , DIMENSION(-NSNOW+1:NSOIL), INTENT(OUT)   :: Z0WRF 
   INTEGER, DIMENSION(-NSNOW+1:NSOIL), INTENT(OUT)   :: IMELT  !phase change index [1-melt; 2-freeze]
   REAL   , DIMENSION(-NSNOW+1:    0), INTENT(OUT)   :: SNICEV !partial volume ice [m3/m3]
   REAL   , DIMENSION(-NSNOW+1:    0), INTENT(OUT)   :: SNLIQV !partial volume liq. water [m3/m3]
@@ -1536,6 +1535,7 @@ contains
   REAL                              , INTENT(INOUT) :: Q1
 !  REAL                                              :: Q2E
   REAL,                               INTENT(OUT)   :: EMISSI
+  REAL                              , INTENT(OUT)   :: Z0WRF 
 
 ! local
   INTEGER                                           :: IZ     !do-loop index
