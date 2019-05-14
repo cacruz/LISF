@@ -43,7 +43,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
                             zwt     , wa      , wt      , wslake  , lfmass  , rtmass  , & ! in/out : 
                             stmass  , wood    , stblcp  , fastcp  , lai     , sai     , & ! in/out : 
                             cm      , ch      , tauss   ,                               & ! in/out : 
-                            smcwtd  ,deeprech , rech    , z0                          , & ! in/out :
+                            smcwtd  ,deeprech , rech    , z0      , znt               , & ! in/out :
                             fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                             fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
                             subsnow ,                                                   & ! out :
@@ -323,7 +323,6 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real    :: shdfac
   real    :: shdmax
   real    :: lat
-  real    :: z0
   real, allocatable, dimension(:) :: zsoil
   real, allocatable, dimension(:) :: ficeold
   real, allocatable, dimension(:) :: zsnso
@@ -408,13 +407,6 @@ subroutine noahmp_driver_36(iloc, jloc, &
   allocate(snice(-nsnow+1:0))
   allocate(snliq(-nsnow+1:0))
   allocate(stc(-nsnow+1:nsoil))
-
-
-  zsnso = 0.0
-  snice = 0.0
-  snliq = 0.0
-  stc   = 0.0
-  ficeold = 0.0 
 
   ! state variables 
   zsnso = 0.0
@@ -548,7 +540,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
   foln    = 1.0              ! foliage nitrogen, (fraction) a kind of forcing from WRF? 
                              ! in simple driver, it is set to 1.0. In NoahMP code, it 
                              ! is just input (check intent) 
-  z0wrf   = 0.002
+  z0wrf = 0.002
 
   call  noahmp_sflx_36 (                                                   &
                iloc    , jloc    , lat     , yearlen , julian  , cosz    , & ! in : time/space-related
