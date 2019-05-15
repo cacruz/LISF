@@ -19,7 +19,9 @@ user.cfg:
 	touch $@
 Filepath: default.cfg user.cfg LIS_misc.h
 	@echo Generating Filepath
+ifeq ($(BUILD_LIS),yes)
 	$(call make-real-clean)
+endif
 	./plugins.py
 	$(call append_offline)
 ifeq "$(require-filepath)" "true"
@@ -72,9 +74,14 @@ $(LIBTARGET) :
 
 LIBTARGET    =  explis
 TARGETDIR    =  ./
+ifeq ($(BUILD_LIS),yes)
 $(LIBTARGET) : 
-		gmake -i -r lis_contrib                  ; \
-		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS) ; \
+		gmake -i -r lis_contrib
+		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS)
+else
+$(LIBTARGET) : 
+		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS)
+endif
 
 LIBTARGET    =  gcelis
 TARGETDIR    =  ./
