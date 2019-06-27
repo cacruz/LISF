@@ -35,7 +35,7 @@ module LDT_pluginIndices
    character*50, public,  parameter :: LDT_MetForcprocId    = "Metforce processing"
    character*50, public,  parameter :: LDT_MetTDscaleprocId = "Metforce temporal downscaling"
    character*50, public,  parameter :: LDT_StatDscaleMetforcprocId = "Statistical downscaling of met forcing"
-   character*50, public,  parameter :: LDT_SnodepId = "SNODEP analysis"
+   character*50, public,  parameter :: LDT_ldtsiId = "LDTSI analysis"
 
 !-------------------------------------------------------------------------
 ! Domains
@@ -97,6 +97,8 @@ module LDT_pluginIndices
         = "NASA SMAP vegetation optical depth"
    character*50, public,  parameter :: LDT_GLASSlaiobsId            &
         = "GLASS LAI"
+   character*50, public,  parameter :: LDT_LPRMvodobsId            &
+        = "LPRM vegetation optical depth"
 
 !-------------------------------------------------------------------------
 ! Meteorological forcings

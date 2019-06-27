@@ -172,6 +172,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_WRFoutId          = "WRFout"
    character*50, public,  parameter :: LIS_AWAPforcId        = "AWAP"
    character*50, public,  parameter :: LIS_HiMATGMUforcId    = "HiMAT GMU"
+   character*50, public,  parameter :: LIS_mrmsId            = "MRMS"
 !-------------------------------------------------------------------------
 ! land surface parameters
 !-------------------------------------------------------------------------
@@ -232,6 +233,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_WindSatsmobsId      = "Windsat"
    character*50, public,  parameter :: LIS_WindSatCsmobsId     = "Windsat C-band"
    character*50, public,  parameter :: LIS_snodepobsId         = "SNODEP"
+   character*50, public,  parameter :: LIS_ldtsiobsId          = "LDTSI"
    character*50, public,  parameter :: LIS_ANSASWEsnowobsId    = "ANSA SWE"
    character*50, public,  parameter :: LIS_ANSASCFsnowobsId    = "ANSA SCF"
    character*50, public,  parameter :: LIS_ANSASNWDsnowobsId   = "ANSA snow depth"
