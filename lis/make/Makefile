@@ -21,6 +21,7 @@ Filepath: default.cfg user.cfg LIS_misc.h
 	@echo Generating Filepath
 ifeq ($(BUILD_LIS),yes)
 	$(call make-real-clean)
+endif
 	./plugins.py
 	$(call append_offline)
 else
