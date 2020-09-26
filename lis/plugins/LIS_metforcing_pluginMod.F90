@@ -150,6 +150,10 @@ subroutine LIS_metforcing_plugin
    use merra2_forcingMod
 #endif
 
+#if ( defined MF_ERA5 )
+   use era5_forcingMod
+#endif
+
 #if ( defined MF_GSWP1 )
    use gswp1_forcingMod
 #endif
@@ -322,6 +326,10 @@ subroutine LIS_metforcing_plugin
    use AWAP_forcingMod
 #endif
 
+#if ( defined MF_AWRAL)
+   use AWRAL_forcingMod
+#endif
+
 #if ( defined MF_HIMAT_GMU)
    use HiMATGMU_forcingMod
 #endif
@@ -430,6 +438,13 @@ subroutine LIS_metforcing_plugin
    external timeinterp_merra2
    external finalize_merra2
    external reset_merra2
+#endif
+
+#if ( defined MF_ERA5 )
+   external get_era5
+   external timeinterp_era5
+   external finalize_era5
+   external reset_era5
 #endif
 
 #if ( defined MF_GSWP1 )
@@ -703,6 +718,13 @@ subroutine LIS_metforcing_plugin
    external finalize_AWAP
 #endif
 
+#if ( defined MF_AWRAL )
+   external get_AWRAL
+   external timeinterp_AWRAL
+   external reset_AWRAL
+   external finalize_AWRAL
+#endif
+
 #if ( defined MF_HIMAT_GMU )
    external get_HiMATGMU
    external timeinterp_HiMATGMU
@@ -873,6 +895,16 @@ subroutine LIS_metforcing_plugin
                                   timeinterp_merra2)
    call registerresetmetforc(trim(LIS_merra2Id)//char(0),reset_merra2)
    call registerfinalmetforc(trim(LIS_merra2Id)//char(0),finalize_merra2)
+#endif
+
+#if ( defined MF_ERA5)
+! - ERA5 Reanalysis Forcing:
+   call registerinitmetforc(trim(LIS_era5Id)//char(0),init_ERA5)
+   call registerretrievemetforc(trim(LIS_era5Id)//char(0),get_era5)
+   call registertimeinterpmetforc(trim(LIS_era5Id)//char(0), &
+                                  timeinterp_era5)
+   call registerresetmetforc(trim(LIS_era5Id)//char(0),reset_era5)
+   call registerfinalmetforc(trim(LIS_era5Id)//char(0),finalize_era5)
 #endif
 
 #if ( defined MF_GSWP1 )
@@ -1284,6 +1316,15 @@ subroutine LIS_metforcing_plugin
                                   timeinterp_AWAP)
    call registerresetmetforc(trim(LIS_AWAPforcId)//char(0),reset_AWAP)
    call registerfinalmetforc(trim(LIS_AWAPforcId)//char(0),finalize_AWAP)
+#endif
+
+#if ( defined MF_AWRAL)
+   call registerinitmetforc(trim(LIS_AWRALforcId)//char(0),init_AWRAL)
+   call registerretrievemetforc(trim(LIS_AWRALforcId)//char(0),get_AWRAL)
+   call registertimeinterpmetforc(trim(LIS_AWRALforcId)//char(0), &
+                                  timeinterp_AWRAL)
+   call registerresetmetforc(trim(LIS_AWRALforcId)//char(0),reset_AWRAL)
+   call registerfinalmetforc(trim(LIS_AWRALforcId)//char(0),finalize_AWRAL)
 #endif
 
 #if ( defined MF_HIMAT_GMU)

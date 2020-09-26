@@ -71,6 +71,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_clm2Id      = "CLM.2"
    character*50, public,  parameter :: LIS_vic411Id    = "VIC.4.1.1"
    character*50, public,  parameter :: LIS_vic412Id    = "VIC.4.1.2"
+   character*50, public,  parameter :: LIS_AWRAL600Id    = "AWRAL.6.0.0"
    character*50, public,  parameter :: LIS_mosaicId    = "Mosaic"
    character*50, public,  parameter :: LIS_hyssibId    = "HySSIB"
    !character*50, public,  parameter :: LIS_sib2Id      = "SiB2"
@@ -176,7 +177,9 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_WRFoutId          = "WRFout"
    character*50, public,  parameter :: LIS_AWAPforcId        = "AWAP"
    character*50, public,  parameter :: LIS_HiMATGMUforcId    = "HiMAT GMU"
+   character*50, public,  parameter :: LIS_AWRALforcId    = "AWRAL processed forcing"
    character*50, public,  parameter :: LIS_mrmsId            = "MRMS"
+   character*50, public,  parameter :: LIS_era5Id            = "ERA5"
 !-------------------------------------------------------------------------
 ! land surface parameters
 !-------------------------------------------------------------------------
@@ -281,6 +284,8 @@ module LIS_pluginIndices
         "SMAP(NRT) soil moisture"
    character*50, public,  parameter :: LIS_ASOsweobsId           = &
         "ASO SWE"
+   character*50, public,  parameter :: LIS_synwlId             = &
+        "Synthetic water level"
 !-------------------------------------------------------------------------
 ! Bias Estimation Algorithms
 !-------------------------------------------------------------------------
@@ -317,6 +322,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_ARSsmobsId = "ARS sm" ! SY
    character*50, public,  parameter :: LIS_ISMNsmobsId = "ISMN sm" 
    character*50, public,  parameter :: LIS_SMAPsmobsId = "SMAP sm"
+   character*50, public,  parameter :: LIS_UAsnowobsId = "UA snow"
 !-------------------------------------------------------------------------
 ! Objective Function Evaluation Criteria
 !-------------------------------------------------------------------------
