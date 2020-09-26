@@ -22,6 +22,11 @@ module LISWRFexport_module
   PRIVATE
   
   type, public :: liswrfexport
+     real, allocatable :: fveg(:,:)
+     real, allocatable :: t2mb(:,:)
+     real, allocatable :: q2mb(:,:)
+     real, allocatable :: t2mv(:,:)
+     real, allocatable :: q2mv(:,:)
      real, allocatable :: avgsurft(:,:)
      real, allocatable :: qh(:,:)
      real, allocatable :: eta_kinematic(:,:)
@@ -62,6 +67,11 @@ module LISWRFexport_module
      real, allocatable :: relsmc3(:,:)
      real, allocatable :: relsmc4(:,:)
 
+     real, allocatable :: fveg_t(:)
+     real, allocatable :: t2mb_t(:)
+     real, allocatable :: q2mb_t(:)
+     real, allocatable :: t2mv_t(:)
+     real, allocatable :: q2mv_t(:)
      real, allocatable :: avgsurft_t(:)
      real, allocatable :: qh_t(:)
      real, allocatable :: eta_kinematic_t(:)

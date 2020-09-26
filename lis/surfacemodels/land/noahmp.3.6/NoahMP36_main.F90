@@ -152,6 +152,7 @@ subroutine NoahMP36_main(n)
     real                 :: tmp_smcwtd             ! soil water content between bottom of the soil and water table [m^3 m-3]
     real                 :: tmp_deeprech           ! recharge to or from the water table when deep [m]
     real                 :: tmp_rech               ! recharge to or from the water table when shallow [m]
+    real                 :: tmp_z0                 ! combined z0 sent to coupled model
     real                 :: tmp_fsa                ! total absorbed solar radiation [W m-2]
     real                 :: tmp_fsr                ! total reflected solar radiation [W m-2]
     real                 :: tmp_fira               ! total net longwave radiation to atmosphere [W m-2]
@@ -165,6 +166,7 @@ subroutine NoahMP36_main(n)
     real                 :: tmp_edir               ! direct evaporation rate from surface [kg m-2 s-1]
     real                 :: tmp_trad               ! surface radiative temperature [K]
     real                 :: tmp_subsnow            ! snow sublimation rate [kg m-2 s-1]
+    real                 :: tmp_qsfc               ! mixing ratio [kg kg-1]
     real                 :: tmp_tgb                ! ground temperature [K]
     real                 :: tmp_tgv                ! ground surface temperature [K]
     real                 :: tmp_t2mv               ! 2-m air temperature over vegetated part [K]
@@ -298,6 +300,10 @@ subroutine NoahMP36_main(n)
     real                 :: bdsno
     ! Code added by Rhae Sung Kim 
     real                 :: layersd
+    ! Variables for computing RELSMC (volumetric relative soil moisture)
+    ! units: [%] formula: (smc - smcwlt) / (porosity - smcwlt)
+    real                 :: relsmc
+    real                 :: tempval
 
     !ag (12Sep2019)
     real                 :: tmp_rivsto         !     MNB ADD LATER
@@ -529,6 +535,7 @@ subroutine NoahMP36_main(n)
             tmp_smcwtd      = NOAHMP36_struc(n)%noahmp36(t)%smcwtd
             tmp_deeprech    = NOAHMP36_struc(n)%noahmp36(t)%deeprech
             tmp_rech        = NOAHMP36_struc(n)%noahmp36(t)%rech
+            tmp_z0          = NOAHMP36_struc(n)%noahmp36(t)%z0
             tmp_zlvl        = NOAHMP36_struc(n)%noahmp36(t)%zlvl
             tmp_albd      = NOAHMP36_struc(n)%noahmp36(t)%albd
             tmp_albi      = NOAHMP36_struc(n)%noahmp36(t)%albi
@@ -756,6 +763,7 @@ subroutine NoahMP36_main(n)
                                   tmp_smcwtd            , & ! inout - soil water content between bottom of the soil and water table [m^3 m-3]
                                   tmp_deeprech          , & ! inout - recharge to or from the water table when deep [m]
                                   tmp_rech              , & ! inout - recharge to or from the water table when shallow [m]
+                                  tmp_z0                , & ! inout - combined z0 sent to coupled model
                                   tmp_fsa               , & ! out   - total absorbed solar radiation [W m-2]
                                   tmp_fsr               , & ! out   - total reflected solar radiation [W m-2]
                                   tmp_fira              , & ! out   - total net longwave radiation to atmosphere [W m-2]
@@ -769,6 +777,7 @@ subroutine NoahMP36_main(n)
                                   tmp_edir              , & ! out   - direct evaporation rate from surface [kg m-2 s-1]
                                   tmp_trad              , & ! out   - surface radiative temperature [K]
                                   tmp_subsnow           , & ! out   - snow sublimation rate [kg m-2 s-1]
+                                  tmp_qsfc              , & ! out   - mixing ratio [kg kg-1]
                                   tmp_tgb               , & ! out   - ground temperature [K]
                                   tmp_tgv               , & ! out   - ground surface temperature [K]
                                   tmp_t2mv              , & ! out   - 2-m air temperature over vegetated part [K]
@@ -860,8 +869,10 @@ subroutine NoahMP36_main(n)
             NOAHMP36_struc(n)%noahmp36(t)%smcwtd      = tmp_smcwtd
             NOAHMP36_struc(n)%noahmp36(t)%deeprech    = tmp_deeprech
             NOAHMP36_struc(n)%noahmp36(t)%rech        = tmp_rech
+            NOAHMP36_struc(n)%noahmp36(t)%z0          = tmp_z0
 
             ! save output variables from local variables to global variables
+            NOAHMP36_struc(n)%noahmp36(t)%qsfc         = tmp_qsfc
             NOAHMP36_struc(n)%noahmp36(t)%fsa          = tmp_fsa
             NOAHMP36_struc(n)%noahmp36(t)%fsr          = tmp_fsr
             NOAHMP36_struc(n)%noahmp36(t)%fira         = tmp_fira
@@ -923,6 +934,17 @@ subroutine NoahMP36_main(n)
             NOAHMP36_struc(n)%noahmp36(t)%sfcheadrt    = tmp_sfcheadrt
             NOAHMP36_struc(n)%noahmp36(t)%albd       = tmp_albd
             NOAHMP36_struc(n)%noahmp36(t)%albi       = tmp_albi  
+
+            ! WRF-LIS coupling
+            ! LH  = fgev+fcev+fctr :  total latent heat flux
+            ! QFX = etran+ecan+edir : upward moisture flux
+            NOAHMP36_struc(n)%noahmp36(t)%LH  = NOAHMP36_struc(n)%noahmp36(t)%fgev + &
+                                                NOAHMP36_struc(n)%noahmp36(t)%fcev + &
+                                                NOAHMP36_struc(n)%noahmp36(t)%fctr
+            NOAHMP36_struc(n)%noahmp36(t)%QFX = NOAHMP36_struc(n)%noahmp36(t)%etran + &
+                                                NOAHMP36_struc(n)%noahmp36(t)%ecan + &
+                                                NOAHMP36_struc(n)%noahmp36(t)%edir
+
 
             ![ 1] output variable: soil_temp (unit=K). ***  soil layer temperature
             soil_temp(1:NOAHMP36_struc(n)%nsoil) = NOAHMP36_struc(n)%noahmp36(t)%sstc(NOAHMP36_struc(n)%nsnow+1 : NOAHMP36_struc(n)%nsoil+NOAHMP36_struc(n)%nsnow)
@@ -1268,15 +1290,15 @@ subroutine NoahMP36_main(n)
             call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_GREENNESS, value = NOAHMP36_struc(n)%noahmp36(t)%fveg*100.0, &
                                               vlevel=1, unit="%", direction="-", surface_type = LIS_rc%lsm_index)
             
-            if(tmp_albedo.lt.0) then 
-               tmp_albedo = LIS_rc%udef
+            if(NOAHMP36_struc(n)%noahmp36(t)%albedo.lt.0) then
+               NOAHMP36_struc(n)%noahmp36(t)%albedo = LIS_rc%udef
             endif
-            ![ 66] output variable: albedo (unit=- ). ***  surface albedo 
+            ![ 66] output variable: albedo (unit=- ). ***  surface albedo
             call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_ALBEDO, &
-                 value = tmp_albedo,&
+                 value = NOAHMP36_struc(n)%noahmp36(t)%albedo,&
                  vlevel=1, unit="-", direction="-", &
                  surface_type = LIS_rc%lsm_index)
-            
+
             ![ 67] output variable: qsnbot (unit=kg m-2 s-1). ***  melting water out of snow bottom 
             call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_QSM, value = NOAHMP36_struc(n)%noahmp36(t)%qsnbot, &
                                               vlevel=1, unit="kg m-2 s-1", direction="S2L", surface_type = LIS_rc%lsm_index)
@@ -1443,6 +1465,41 @@ subroutine NoahMP36_main(n)
                  tmp_subsnow, vlevel=1,         &
                  unit="kg m-2 s-1", direction="-", surface_type = LIS_rc%lsm_index)
             
+            ! C.Cruz: Tempbot is needed by NU-WRF (LDT-postlis, REAL)
+            call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_TEMPBOT,                   &
+                value=NOAHMP36_struc(n)%noahmp36(t)%tbot, vlevel=1, unit="K",            &
+                 direction="-", surface_type=LIS_rc%lsm_index)
+            
+            ! C.Cruz: RELSMC is needed by NU-WRF (LDT-postlis, REAL)
+            do i=1,NOAHMP36_struc(n)%nsoil
+               NOAHMP36_struc(n)%noahmp36(t)%relsmc(i) = &
+                    (NOAHMP36_struc(n)%noahmp36(t)%smc(i) - tmp_smcwlt)/(tmp_smcmax - tmp_smcwlt)
+
+               if ( NOAHMP36_struc(n)%noahmp36(t)%relsmc(i) > 1.0 ) then
+                  NOAHMP36_struc(n)%noahmp36(t)%relsmc(i)  = 1.0
+               end if
+               if ( NOAHMP36_struc(n)%noahmp36(t)%relsmc(i)  < 0.01 ) then
+                  NOAHMP36_struc(n)%noahmp36(t)%relsmc(i)  = 0.01
+               end if
+
+! Set relative soil moisture to missing (LIS_rc%udef) if the vegetation type is urban class.
+! Adapted from  J.Case (9/11/2014) in Noah.3.6              
+              if (tmp_vegetype == tmp_urban_vegetype) then
+                  NOAHMP36_struc(n)%noahmp36(t)%relsmc(i) = LIS_rc%udef
+               end if
+               call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_RELSMC, vlevel=i, &
+                    value=NOAHMP36_struc(n)%noahmp36(t)%relsmc(i), unit='-', direction="-", &
+                    surface_type=LIS_rc%lsm_index)
+               if ( NOAHMP36_struc(n)%noahmp36(t)%relsmc(i) == LIS_rc%udef ) then
+                  tempval = NOAHMP36_struc(n)%noahmp36(t)%relsmc(i)
+               else
+                  tempval = NOAHMP36_struc(n)%noahmp36(t)%relsmc(i)*100.0
+               end if
+               call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_RELSMC,vlevel=i, &
+                    value=tempval, unit='%',direction="-", &
+                    surface_type=LIS_rc%lsm_index)
+            end do
+
             ! reset forcing variables to 0 for accumulation 
             NOAHMP36_struc(n)%noahmp36(t)%tair = 0.0
             NOAHMP36_struc(n)%noahmp36(t)%psurf = 0.0

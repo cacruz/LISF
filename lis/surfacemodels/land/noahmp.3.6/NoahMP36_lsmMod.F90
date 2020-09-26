@@ -289,6 +289,7 @@ contains
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%zss( NOAHMP36_struc(n)%nsoil + NOAHMP36_struc(n)%nsnow))
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%snowice(NOAHMP36_struc(n)%nsnow))
                 allocate(NOAHMP36_struc(n)%noahmp36(t)%snowliq(NOAHMP36_struc(n)%nsnow))
+                allocate(NOAHMP36_struc(n)%noahmp36(t)%relsmc(NOAHMP36_struc(n)%nsoil))
             enddo
 !            ! allocate memory for intiali state variables
 !            allocate(NOAHMP36_struc(n)%init_stc( NOAHMP36_struc(n)%nsoil))

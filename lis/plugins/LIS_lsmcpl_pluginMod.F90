@@ -98,6 +98,16 @@ subroutine LIS_lsmcpl_plugin
    external noah36_setwrfexport
 #endif
 
+#if ( defined SM_NOAHMP_3_6 )
+   external noahmp36_wrf_f2t
+   external noahmp36_setwrfexport
+#endif
+
+#if ( defined SM_NOAHMP_4_0_1 )
+   external noahmp401_wrf_f2t
+   external noahmp401_setwrfexport
+#endif
+
 #if 0
 !tight coupling interfaces: no ESMF
    external noah271_wrf_f2t
@@ -209,6 +219,25 @@ subroutine LIS_lsmcpl_plugin
                                  trim(LIS_wrfcplId)//char(0), &
                                  noah36_setwrfexport)
 #endif
+
+#if ( defined SM_NOAHMP_3_6 )
+    call registerlsmf2t(trim(LIS_noahmp36Id)//"+"//&
+                        trim(LIS_wrfcplId)//char(0), &
+                        noahmp36_wrf_f2t)
+    call registerlsmcplsetexport(trim(LIS_noahmp36Id)//"+"//&
+                                 trim(LIS_wrfcplId)//char(0), &
+                                 noahmp36_setwrfexport)
+#endif
+    
+#if ( defined SM_NOAHMP_4_0_1 )
+    call registerlsmf2t(trim(LIS_noahmp401Id)//"+"//&
+                        trim(LIS_wrfcplId)//char(0), &
+                        noahmp401_wrf_f2t)
+    call registerlsmcplsetexport(trim(LIS_noahmp401Id)//"+"//&
+                                 trim(LIS_wrfcplId)//char(0), &
+                                 noahmp401_setwrfexport)
+#endif
+    
 #endif
 
 end subroutine LIS_lsmcpl_plugin

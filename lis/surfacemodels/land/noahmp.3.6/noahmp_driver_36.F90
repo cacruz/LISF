@@ -43,10 +43,11 @@ subroutine noahmp_driver_36(iloc, jloc, &
                             zwt     , wa      , wt      , wslake  , lfmass  , rtmass  , & ! in/out : 
                             stmass  , wood    , stblcp  , fastcp  , lai     , sai     , & ! in/out : 
                             cm      , ch      , tauss   ,                               & ! in/out : 
-                            smcwtd  ,deeprech , rech    ,                               & ! in/out :
+                            smcwtd  , deeprech , rech   ,                               & ! in/out :
+                            z0      ,                                                   & ! out :
                             fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                             fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
-                            subsnow ,                                                   & ! out :
+                            subsnow , qsfc    ,                                         & ! out :
                             tgb     , tgv     , t2mv    , t2mb    , q2v     , q2b     , & ! out :
                             runsrf  , runsub  , apar    , psn     , sav     , sag     , & ! out :
                             fsno    , nee     , gpp     , npp     , fveg    , albedo  , & ! out :
@@ -234,6 +235,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real, intent(inout) :: smcwtd               ! soil water content between bottom of the soil and water table [m^3 m-3]
   real, intent(inout) :: deeprech             ! recharge to or from the water table when deep [m]
   real, intent(inout) :: rech                 ! recharge to or from the water table when shallow [m]
+  real, intent(inout) :: z0                   ! combined z0 sent to coupled model
   real,   intent(out) :: fsa                  ! total absorbed solar radiation [W m-2]
   real,   intent(out) :: fsr                  ! total reflected solar radiation [W m-2] 
   real,   intent(out) :: fira                 ! total net longwave radiation to atmosphere [W m-2] 
@@ -247,6 +249,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real,   intent(out) :: edir                 ! direct evaporation rate from surface [kg m-2 s-1] 
   real,   intent(out) :: trad                 ! surface radiative temperature [K]  
   real,   intent(out) :: subsnow              ! snow sublimation rate [kg m-2 s-1]
+  real,   intent(out) :: qsfc                 ! mixing ratio (kg kg-1)
   real,   intent(out) :: tgb                  ! ground temperature (K)
   real,   intent(out) :: tgv                  ! ground surface temperature [K]
   real,   intent(out) :: t2mv                 ! 2-m air temperature over vegetated part [K]
@@ -329,7 +332,7 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real    :: shdfac
   real    :: shdmax
   real    :: lat
-  real    :: z0
+  real    :: z0wrf
   real, allocatable, dimension(:) :: zsoil
   real, allocatable, dimension(:) :: ficeold
   real, allocatable, dimension(:) :: zsnso
@@ -337,12 +340,12 @@ subroutine noahmp_driver_36(iloc, jloc, &
   real, allocatable, dimension(:) :: snliq
   real, allocatable, dimension(:) :: stc
 
+  real    :: salb
   real    :: qfx
   real    :: flxsum
   real    :: ir_sh_ev_gh
   real    :: fsa_fsr
   real    :: dz8w
-  real    :: qsfc
   real    :: qc             ! cloud water mixing ratio, unit [-], not actually used? 
   real    :: psfc
   integer :: snl_idx
@@ -571,12 +574,13 @@ subroutine noahmp_driver_36(iloc, jloc, &
                stmass  , wood    , stblcp  , fastcp  , lai     , sai     , & ! in/out : 
                cm      , ch      , tauss   ,                               & ! in/out : 
                smcwtd  , deeprech, rech    ,                               & ! in/out :
+               z0wrf   ,                                                   &
                fsa     , fsr     , fira    , fsh     , ssoil   , fcev    , & ! out : 
                fgev    , fctr    , ecan    , etran   , edir    , trad    , & ! out :
                subsnow ,                                                   & ! out :
                tgb     , tgv     , t2mv    , t2mb    , q2v     , q2b     , & ! out :
                runsrf  , runsub  , apar    , psn     , sav     , sag     , & ! out :
-               fsno    , nee     , gpp     , npp     , fveg    , albedo  , & ! out :
+               fsno    , nee     , gpp     , npp     , fveg    , salb    , & ! out :
                qsnbot  , ponding , ponding1, ponding2, rssun   , rssha   , & ! out :
                bgap    , wgap    , chv     , chb     , emissi  ,           & ! out :
                shg     , shc     , shb     , evg     , evb     , ghv     , & ! out :
@@ -589,11 +593,15 @@ subroutine noahmp_driver_36(iloc, jloc, &
 #endif
                )
 
+  IF ( SALB > -999 ) THEN
+     ALBEDO = SALB
+  END IF
 
   qfx = fgev + fcev + fctr
   ir_sh_ev_gh = fira + fsh + qfx + ssoil
   flxsum = (-fsa) + fira + fsh + qfx + ssoil
   fsa_fsr = fsa + fsr
+  z0 = z0wrf
   
   ! state variables 
   sstc(1:nsnow+nsoil) = stc(-nsnow+1:nsoil) 

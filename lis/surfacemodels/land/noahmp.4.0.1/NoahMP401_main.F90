@@ -171,6 +171,7 @@ subroutine NoahMP401_main(n)
     real                 :: tmp_smcwtd             ! soil moisture content in the layer to the water table when deep [-]
     real                 :: tmp_deeprech           ! recharge to the water table when deep [-]
     real                 :: tmp_rech               ! recharge to the water table (diagnostic) [-]
+    real                 :: tmp_z0                 ! combined z0 sent to coupled model
     real                 :: tmp_grain              ! mass of grain XING [g/m2]
     real                 :: tmp_gdd                ! growing degree days XING (based on 10C) [-]
     integer              :: tmp_pgs                ! growing degree days XING [-]
@@ -478,6 +479,7 @@ subroutine NoahMP401_main(n)
             tmp_grain           = NOAHMP401_struc(n)%noahmp401(t)%grain
             tmp_gdd             = NOAHMP401_struc(n)%noahmp401(t)%gdd
             tmp_pgs             = NOAHMP401_struc(n)%noahmp401(t)%pgs
+            tmp_z0              = NOAHMP401_struc(n)%noahmp401(t)%z0
 
 ! Calculate water storages at start of timestep
             startsm = 0.0
@@ -610,6 +612,7 @@ subroutine NoahMP401_main(n)
                                    tmp_gdd               , & ! inout - growing degree days XING (based on 10C) [-]
                                    tmp_pgs               , & ! inout - growing degree days XING [-]
                                    tmp_gecros_state      , & ! inout - optional gecros crop [-]
+                                   tmp_z0                , & ! inout - combined z0 sent to coupled model [-]
                                    tmp_t2mv              , & ! out   - 2m temperature of vegetation part [K]
                                    tmp_t2mb              , & ! out   - 2m temperature of bare ground part [K]
                                    tmp_q2mv              , & ! out   - 2m mixing ratio of vegetation part [-]
@@ -769,6 +772,7 @@ subroutine NoahMP401_main(n)
             NOAHMP401_struc(n)%noahmp401(t)%chuc      = tmp_chuc
             NOAHMP401_struc(n)%noahmp401(t)%chv2      = tmp_chv2
             NOAHMP401_struc(n)%noahmp401(t)%chb2      = tmp_chb2
+            NOAHMP401_struc(n)%noahmp401(t)%z0        = tmp_z0
 
             ! EMK Update RHMin for 557WW
             if (tmp_tair .lt. &
@@ -811,6 +815,9 @@ subroutine NoahMP401_main(n)
                                               vlevel=1, unit="W m-2", direction="DN", surface_type = LIS_rc%lsm_index)
 
             ![ 5] output variable: albedo (unit=- ). ***  total grid albedo
+            if(NOAHMP401_struc(n)%noahmp401(t)%albedo.lt.0) then
+               NOAHMP401_struc(n)%noahmp401(t)%albedo = LIS_rc%udef
+            endif
             call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_ALBEDO, value = NOAHMP401_struc(n)%noahmp401(t)%albedo, &
                                               vlevel=1, unit="-", direction="-", surface_type = LIS_rc%lsm_index)
 
@@ -1230,6 +1237,12 @@ subroutine NoahMP401_main(n)
             !         - (unit=W m-2) - added by David Mocko
             call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_QA, value = tmp_pah, &
                   vlevel=1, unit="W m-2",direction="DN",surface_type=LIS_rc%lsm_index)
+
+
+            ! C.Cruz: Tempbot is needed by NU-WRF (LDT-postlis, REAL)
+            call LIS_diagnoseSurfaceOutputVar(n, t, LIS_MOC_TEMPBOT,   &
+                 value=tmp_tbot, vlevel=1, unit="K",                   &
+                 direction="-", surface_type=LIS_rc%lsm_index)             
 
 ! Added water balance change terms - David Mocko
             endsm = 0.0

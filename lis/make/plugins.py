@@ -162,5 +162,6 @@ for sect in config.sections():
         else:
             defineh.write(dentry.format('undef', config.get(sect, 'macro')))
 
+filepath.write(fpath.format(" ../offline"))
 filepath.close()
 defineh.close()

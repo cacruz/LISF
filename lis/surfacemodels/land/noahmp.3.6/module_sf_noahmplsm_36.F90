@@ -637,6 +637,7 @@ contains
                    STMASS  , WOOD    , STBLCP  , FASTCP  , LAI     , SAI     , & ! IN/OUT : 
                    CM      , CH      , TAUSS   ,                               & ! IN/OUT : 
                    SMCWTD  ,DEEPRECH , RECH    ,                               & ! IN/OUT :
+                   Z0WRF   ,                                                   & ! IN/OUT :
                    FSA     , FSR     , FIRA    , FSH     , SSOIL   , FCEV    , & ! OUT : 
                    FGEV    , FCTR    , ECAN    , ETRAN   , EDIR    , TRAD    , & ! OUT :
                    SUBSNOW ,                                                   & ! OUT :
@@ -743,7 +744,8 @@ contains
   REAL                           , INTENT(INOUT) :: WSLAKE !lake water storage (can be neg.) (mm)
   REAL,                            INTENT(INOUT) :: SMCWTD !soil water content between bottom of the soil and water table [m3/m3]
   REAL,                            INTENT(INOUT) :: DEEPRECH !recharge to or from the water table when deep [m]
-  REAL,                            INTENT(INOUT) :: RECH !recharge to or from the water table when shallow [m] (diagnostic)
+  REAL,                            INTENT(INOUT) :: RECH   !recharge to or from the water table when shallow [m] (diagnostic)
+  REAL,                            INTENT(INOUT) :: Z0WRF  !combined z0 sent to coupled model
 
 ! output
   REAL                           , INTENT(OUT)   :: FSA    !total absorbed solar radiation (w/m2)
@@ -976,6 +978,7 @@ contains
                  ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                  FVEG   ,                                         & !in
                  QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,iloc, jloc , & !in
+		 Z0WRF  ,                                         &
                  IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                  SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                  TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1357,6 +1360,7 @@ contains
                      ELAI   ,ESAI   ,CSOIL  ,FWET   ,FOLN   ,         & !in
                      FVEG   ,                                         & !in
                      QSNOW  ,DZSNSO ,LAT    ,CANLIQ ,CANICE ,ILOC   , JLOC, & !in
+		     Z0WRF  ,                                         & !out
                      IMELT  ,SNICEV ,SNLIQV ,EPORE  ,T2M    ,FSNO   , & !out
                      SAV    ,SAG    ,QMELT  ,FSA    ,FSR    ,TAUX   , & !out
                      TAUY   ,FIRA   ,FSH    ,FCEV   ,FGEV   ,FCTR   , & !out
@@ -1518,6 +1522,7 @@ contains
   REAL                              , INTENT(OUT)   :: T2MB   !2-m air temperature over bare ground part [k]
   REAL                              , INTENT(OUT)   :: BGAP
   REAL                              , INTENT(OUT)   :: WGAP
+  REAL                              , INTENT(OUT)   :: Z0WRF  !combined z0 sent to coupled model
 !jref:end
 
 ! input & output
@@ -1883,6 +1888,7 @@ contains
         CH    = FVEG * CHV       + (1.0 - FVEG) * CHB
         Q1    = FVEG * (EAH*0.622/(SFCPRS - 0.378*EAH)) + (1.0 - FVEG)*QSFC
         Q2E   = FVEG * Q2V       + (1.0 - FVEG) * Q2B
+	Z0WRF = Z0M
 
     ELSE
         TAUX  = TAUXB
@@ -1904,6 +1910,7 @@ contains
         RSSHA = 0.0
         TGV   = TGB
         CHV   = CHB
+	Z0WRF = Z0MG
     END IF
 
     FIRE = LWDN + FIRA

@@ -1190,6 +1190,11 @@ contains
     enddo
 !building grid space from surface model tiles
 
+    call LIS_tile2grid(n,LISWRF_export(n)%fveg,LISWRF_export(n)%fveg_t)
+    call LIS_tile2grid(n,LISWRF_export(n)%t2mb,LISWRF_export(n)%t2mb_t)
+    call LIS_tile2grid(n,LISWRF_export(n)%q2mb,LISWRF_export(n)%q2mb_t) !
+    call LIS_tile2grid(n,LISWRF_export(n)%t2mv,LISWRF_export(n)%t2mv_t) !
+    call LIS_tile2grid(n,LISWRF_export(n)%q2mv,LISWRF_export(n)%q2mv_t) !
     call LIS_tile2grid(n,LISWRF_export(n)%avgsurft,LISWRF_export(n)%avgsurft_t)
     call LIS_tile2grid(n,LISWRF_export(n)%qh,LISWRF_export(n)%qh_t)
     call LIS_tile2grid(n,LISWRF_export(n)%eta_kinematic,LISWRF_export(n)%eta_kinematic_t)

@@ -69,6 +69,11 @@ module LISWRFGridCompMod
          LISWRF_import(n)%startflag = .true. 
 
 !Export states
+         allocate(LISWRF_export(n)%fveg(LIS_rc%lnc(n),LIS_rc%lnr(n)))
+         allocate(LISWRF_export(n)%t2mb(LIS_rc%lnc(n),LIS_rc%lnr(n)))
+         allocate(LISWRF_export(n)%q2mb(LIS_rc%lnc(n),LIS_rc%lnr(n))) !
+         allocate(LISWRF_export(n)%t2mv(LIS_rc%lnc(n),LIS_rc%lnr(n))) !
+         allocate(LISWRF_export(n)%q2mv(LIS_rc%lnc(n),LIS_rc%lnr(n))) !
          allocate(LISWRF_export(n)%avgsurft(LIS_rc%lnc(n),LIS_rc%lnr(n)))
          allocate(LISWRF_export(n)%qh(LIS_rc%lnc(n),LIS_rc%lnr(n)))
          allocate(LISWRF_export(n)%eta_kinematic(LIS_rc%lnc(n),LIS_rc%lnr(n)))
@@ -110,6 +115,11 @@ module LISWRFGridCompMod
          allocate(LISWRF_export(n)%xland(LIS_rc%lnc(n),LIS_rc%lnr(n)))
 
 !Export states
+         allocate(LISWRF_export(n)%fveg_t(LIS_rc%ntiles(n)))
+         allocate(LISWRF_export(n)%t2mb_t(LIS_rc%ntiles(n)))
+         allocate(LISWRF_export(n)%q2mb_t(LIS_rc%ntiles(n))) !
+         allocate(LISWRF_export(n)%t2mv_t(LIS_rc%ntiles(n))) !
+         allocate(LISWRF_export(n)%q2mv_t(LIS_rc%ntiles(n))) !
          allocate(LISWRF_export(n)%avgsurft_t(LIS_rc%ntiles(n)))
          allocate(LISWRF_export(n)%qh_t(LIS_rc%ntiles(n)))
          allocate(LISWRF_export(n)%eta_kinematic_t(LIS_rc%ntiles(n)))

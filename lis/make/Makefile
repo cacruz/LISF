@@ -6,7 +6,7 @@ RM := rm -f
 
 # Define functions
 make-clean := $(RM) *.o *.mod LIS
-make-real-clean := $(RM) *.o *.mod LIS *.d Filepath
+make-real-clean := $(RM) *.o *.mod LIS *.d Filepath *.a
 COUPLED:=$(shell grep -E '^\#[[:space:]]*define[[:space:]]+COUPLED' LIS_misc.h)
 append_offline := $(if $(COUPLED),,vim -N -u NONE -i NONE -e -s -c '$$s;$$; ../offline;|wq' Filepath)
 
@@ -19,9 +19,14 @@ user.cfg:
 	touch $@
 Filepath: default.cfg user.cfg LIS_misc.h
 	@echo Generating Filepath
+ifeq ($(BUILD_LIS),yes)
 	$(call make-real-clean)
 	./plugins.py
 	$(call append_offline)
+else
+	./plugins.py
+	$(call append_offline)
+endif
 ifeq "$(require-filepath)" "true"
    include ./Filepath
 endif
@@ -62,19 +67,25 @@ include ./configure.lis
 
 # Define goals.
 LIS: $(OBJS)
-	 $(FC) -o $@ $(OBJS) $(FOPTS) $(LDFLAGS)
+	$(FC) -o $@ $(OBJS) $(FOPTS) $(LDFLAGS)
+	cp $@ ..
 
 LIBTARGET    =  lislib
 TARGETDIR    =  ./
 $(LIBTARGET) : 
-		gmake -i -r lis_contrib ; \
+		make -i -r lis_contrib ; \
 		$(AR) lislib.a $(OBJS)  ; \
 
 LIBTARGET    =  explis
 TARGETDIR    =  ./
+ifeq ($(BUILD_LIS),yes)
 $(LIBTARGET) : 
-		gmake -i -r lis_contrib                  ; \
-		$(AR) -ru ../../main/libwrflib.a $(OBJS) ; \
+		make -i -r lis_contrib
+		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS)
+else
+$(LIBTARGET) : 
+		$(AR) -ru ../../../WRF/main/libwrflib.a $(OBJS)
+endif
 
 LIBTARGET    =  gcelis
 TARGETDIR    =  ./

@@ -493,6 +493,7 @@ module NoahMP401_module
         real               :: chuc
         real               :: chv2
         real               :: chb2
+        real               :: z0
 
         !EMK for 557WW
         real :: tair_agl_min

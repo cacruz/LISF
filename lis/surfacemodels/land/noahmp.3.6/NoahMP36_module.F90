@@ -587,6 +587,12 @@ module NoahMP36_module
      real               :: chb2
      real               :: fpice
      real               :: sfcheadrt
+     real               :: xice
+     real               :: snowf
+     real               :: chs2
+     real               :: cqs2
+     real               :: q2sat
+     real               :: z
      !-------------------------------------------------------------------------
      ! read in from ARS sm data files ! SY
      !-------------------------------------------------------------------------
@@ -667,11 +673,17 @@ module NoahMP36_module
      real               :: WDPOOL
      real               :: WRRAT
      real               :: MRP
+     ! Added for WRF-LIS coupling
+     real               :: Z0
+     real               :: QSFC
+     real               :: QFX
+     real               :: LH
      ! SY: End from read_mp_veg_parameters
      !-------------------------------------------------------------------------
      ! used for constraints on calibratable parameters for OPTUE ! SY
      !-------------------------------------------------------------------------
      real               :: smcdry ! SY: Not used by NoahMP3.6 from REDPRM, but read in from table
+     real, pointer      :: relsmc(:)
 
   end type noahmp36dec
 end module NoahMP36_module
