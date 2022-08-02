@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -19,6 +21,7 @@
 module SSMISNWDsnow_Mod
 ! !USES: 
   use ESMF
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 !EOP
   implicit none
   
@@ -47,9 +50,9 @@ module SSMISNWDsnow_Mod
      real,    allocatable   :: snwdtime(:,:)
 
      integer             :: useIMS
-     character*100       :: IMSdir
+     character(len=LIS_CONST_PATH_LEN) :: IMSdir
      integer             :: useMODIS
-     character*100       :: MODISdir
+     character(len=LIS_CONST_PATH_LEN) :: MODISdir
 
      integer             :: ims_mi
      real                :: ims_gridDesci(50)
@@ -111,7 +114,7 @@ contains
     type(ESMF_ArraySpec)   ::  intarrspec, realarrspec
     type(ESMF_Field)       ::  pertField(LIS_rc%nnest)
     type(ESMF_ArraySpec)   ::  pertArrSpec
-    character*100          ::  ssmisnowobsdir
+    character(len=LIS_CONST_PATH_LEN) ::  ssmisnowobsdir
     character*100          ::  temp
     real,  allocatable         ::  obsstd(:)
     character*1            ::  vid(2)

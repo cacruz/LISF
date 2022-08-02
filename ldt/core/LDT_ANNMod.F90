@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_ANNMod
@@ -24,6 +30,7 @@ module LDT_ANNMod
   use LDT_coreMod
   use LDT_timeMgrMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 #if (defined USE_NETCDF3 || defined USE_NETCDF4) 
   use netcdf
 #endif
@@ -107,7 +114,7 @@ module LDT_ANNMod
      real, allocatable    :: maxout(:,:)
      real, allocatable    :: minout(:,:)
 
-     character*100             :: outfile
+     character(len=LDT_CONST_PATH_LEN) :: outfile
   end type ANNdatadec
 
   type(LDT_ANNdataStruc) :: LDT_ANNinput
@@ -666,7 +673,7 @@ contains
 #endif
    integer, external  :: LDT_create_subdirs 
    character(len=201) :: c_string     
-   character*100      :: filename
+   character(len=LDT_CONST_PATH_LEN)      :: filename
    integer            :: c,r,gid,dimID(2),tdimID
    integer            :: latId, lonId, varId,xtimeID
    real               :: lat(LDT_rc%lnc(n),LDT_rc%lnr(n))
@@ -816,7 +823,7 @@ contains
     call LDT_verify(ios, "nf90_def_var failed for "//trim(LDT_ANNoutput%varName(1)))
     ios = nf90_put_att(ftn,NF90_GLOBAL,"missing_value",-9999.0)
     
-    if(trim(LDT_rc%lis_map_proj).eq."latlon") then !latlon
+    if(trim(LDT_rc%lis_map_proj(n)).eq."latlon") then !latlon
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
             "EQUIDISTANT CYLINDRICAL"))
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -828,7 +835,7 @@ contains
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
             LDT_rc%gridDesc(n,10)))       
        
-    elseif(trim(LDT_rc%lis_map_proj).eq."mercator") then 
+    elseif(trim(LDT_rc%lis_map_proj(n)).eq."mercator") then 
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
             "MERCATOR"))
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -844,7 +851,7 @@ contains
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
             LDT_rc%gridDesc(n,9)))
        
-    elseif(trim(LDT_rc%lis_map_proj).eq."lambert") then !lambert conformal
+    elseif(trim(LDT_rc%lis_map_proj(n)).eq."lambert") then !lambert conformal
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
             "LAMBERT CONFORMAL"))
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -862,7 +869,7 @@ contains
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
             LDT_rc%gridDesc(n,9)))
        
-    elseif(trim(LDT_rc%lis_map_proj).eq."polar") then ! polar stereographic
+    elseif(trim(LDT_rc%lis_map_proj(n)).eq."polar") then ! polar stereographic
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
             "POLAR STEREOGRAPHIC"))
        call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -920,7 +927,7 @@ contains
     character(len=10) :: time
     character(len=5)  :: zone
     integer, dimension(8) :: values
-    character*100         :: outfile
+    character(len=LDT_CONST_PATH_LEN)         :: outfile
 
 #if (defined USE_NETCDF3 || defined USE_NETCDF4) 
 
@@ -1044,7 +1051,7 @@ contains
     character(len=10)     :: time
     character(len=5)      :: zone
     integer, dimension(8) :: values
-    character*100         :: outfile
+    character(len=LDT_CONST_PATH_LEN)         :: outfile
     character*1000        :: allInpVarNames
     character*1000        :: allInpUnitNames
     character*1000        :: allOutVarNames
@@ -1262,7 +1269,7 @@ contains
     character(len=10)     :: time
     character(len=5)      :: zone
     integer, dimension(8) :: values
-    character*100         :: outfile
+    character(len=LDT_CONST_PATH_LEN)         :: outfile
     character*1000        :: allInpVarNames
     character*1000        :: allInpUnitNames
     character*1000        :: allOutVarNames

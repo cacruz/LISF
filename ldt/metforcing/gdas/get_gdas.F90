@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -29,6 +35,7 @@ subroutine get_gdas(n, findex)
   use LDT_metforcingMod,  only : LDT_forc
   use LDT_timeMgrMod,     only : LDT_tick, LDT_get_nstep
   use LDT_logMod,         only : LDT_logunit, LDT_endrun
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use gdas_forcingMod,    only : gdas_struc
 
   implicit none
@@ -89,7 +96,7 @@ subroutine get_gdas(n, findex)
   real*8  :: timenow, time1, time2
   real*8  :: dumbtime1, dumbtime2
   real    :: gmt1, gmt2
-  character(len=80) :: name00, name03, name06
+  character(len=LDT_CONST_PATH_LEN) :: name00, name03, name06
   logical :: file_exists1, file_exists2, file_exists3
   real :: gridDesci(20)
   integer :: nstep

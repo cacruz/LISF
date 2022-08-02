@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module gswp2_forcingMod
 !BOP
@@ -51,6 +57,7 @@ module gswp2_forcingMod
 !  \end{description}
 !
 ! !USES: 
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   implicit none
   
   PRIVATE
@@ -70,16 +77,16 @@ module gswp2_forcingMod
      integer :: nc, nr, vector_len   !AWIPS 212 dimensions
      integer :: nmif
      real*8  :: gswp2time1,gswp2time2
-     character*100 :: mfile
-     character*100 :: tair
-     character*100 :: qair
-     character*100 :: psurf
-     character*100 :: wind
-     character*100 :: rainf
-     character*100 :: snowf
-     character*100 :: swdown
-     character*100 :: lwdown
-     character*100 :: rainf_c
+     character(len=LDT_CONST_PATH_LEN) :: mfile
+     character(len=LDT_CONST_PATH_LEN) :: tair
+     character(len=LDT_CONST_PATH_LEN) :: qair
+     character(len=LDT_CONST_PATH_LEN) :: psurf
+     character(len=LDT_CONST_PATH_LEN) :: wind
+     character(len=LDT_CONST_PATH_LEN) :: rainf
+     character(len=LDT_CONST_PATH_LEN) :: snowf
+     character(len=LDT_CONST_PATH_LEN) :: swdown
+     character(len=LDT_CONST_PATH_LEN) :: lwdown
+     character(len=LDT_CONST_PATH_LEN) :: rainf_c
 
      integer, allocatable   :: gindex(:,:)
 

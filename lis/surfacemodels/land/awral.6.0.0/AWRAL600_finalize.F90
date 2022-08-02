@@ -1,6 +1,12 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0     
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
 ! !ROUTINE: AWRAL600_finalize
@@ -14,7 +20,7 @@
 !   12/18/18: Wendy Sharples, Shugong Wang; initial implementation for AWRAL600 with LIS-7
 !
 ! !INTERFACE:
-subroutine AWRAL600_finalize(n)
+subroutine AWRAL600_finalize()
 ! !USES:
     use LIS_coreMod, only : LIS_rc
     use AWRAL600_lsmMod
@@ -66,16 +72,16 @@ subroutine AWRAL600_finalize(n)
         deallocate(AWRAL600_struc(n)%wslimu)
 
         ! free momory for initial state variable
-        if ( ASSOCIATED(AWRAL600_struc(n)%init_s0)) then        
+        if ( allocated(AWRAL600_struc(n)%init_s0)) then
           deallocate(AWRAL600_struc(n)%init_s0)
         end if
-        if ( ASSOCIATED(AWRAL600_struc(n)%init_ss)) then
+        if ( allocated(AWRAL600_struc(n)%init_ss)) then
           deallocate(AWRAL600_struc(n)%init_ss)
         end if
-        if ( ASSOCIATED(AWRAL600_struc(n)%init_s0)) then
+        if ( allocated(AWRAL600_struc(n)%init_s0)) then
           deallocate(AWRAL600_struc(n)%init_sd)
         end if
-        if ( ASSOCIATED(AWRAL600_struc(n)%init_s0)) then
+        if ( allocated(AWRAL600_struc(n)%init_s0)) then
           deallocate(AWRAL600_struc(n)%init_mleaf)
         end if
     end do ! nest loop

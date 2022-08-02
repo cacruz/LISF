@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -23,7 +29,7 @@ subroutine readprecip_RFE2Daily( n, fname, findex, order, ferror_RFE2Daily )
 
 ! !ARGUMENTS:
   integer, intent(in) :: n
-  character(len=120)  :: fname
+  character(len=*)  :: fname
   integer, intent(in) :: findex
   integer, intent(in) :: order
   integer             :: ferror_RFE2Daily

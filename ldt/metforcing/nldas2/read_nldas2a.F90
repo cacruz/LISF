@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -51,7 +57,7 @@ subroutine read_nldas2a(n, findex, order, month, name,ferror)
   integer, intent(in)      :: n
   integer, intent(in)      :: order
   integer, intent(out)     :: month
-  character*80, intent(in) :: name
+  character(len=*), intent(in) :: name
   integer, intent(out)     :: ferror
 !
 ! !DESCRIPTION:

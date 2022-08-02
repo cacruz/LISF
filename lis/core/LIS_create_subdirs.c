@@ -1,7 +1,9 @@
 //-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-// NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+// NASA Goddard Space Flight Center
+// Land Information System Framework (LISF)
+// Version 7.4
 //
-// Copyright (c) 2015 United States Government as represented by the
+// Copyright (c) 2022 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration.
 // All Rights Reserved.
 //-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -142,19 +144,24 @@ int FTN(lis_create_subdirs) (int  *length,
 
                 /* Handle error */
                 if (mkdir_rc == -1) {
-                    /* Attempt to report error message */
-                    error_string = NULL;
-                    error_string = malloc((length_copy+1+21)*sizeof(char));
-                    if (error_string != NULL) {
-                        sprintf(error_string,
+                    /* EEXIST is returned via errno if the directory
+                    * already exists. This isn't an error because
+                    * we are attempting to create the directory.*/
+                    if (errno != EEXIST) {
+                        /* Attempt to report error message */
+                        error_string = NULL;
+                        error_string = malloc((length_copy+1+21)*sizeof(char));
+                        if (error_string != NULL) {
+                            sprintf(error_string,
                                 "ERROR calling mkdir %s",work);
-                        perror(error_string);
-                        free(error_string);
-                        error_string = NULL;			    
+                            perror(error_string);
+                            free(error_string);
+                            error_string = NULL;			    
+                        }
+                        error = 1;
                     }
-                    error = 1;
-                }
-            }            
+                }            
+            }
         }
 
         /* Restore subdirectory token if necessary */

@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -309,6 +311,7 @@ contains
     use LIS_fileIOMod,  only : LIS_create_output_directory, &
          LIS_create_output_filename,  &
          LIS_create_stats_filename
+    use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
 ! !ARGUMENTS: 
     integer, intent(in)   :: n 
@@ -323,7 +326,7 @@ contains
 !  \end{description}
 !EOP
 
-    character*260       :: outfile, statsfile
+    character(len=LIS_CONST_PATH_LEN) :: outfile, statsfile
     logical             :: alarmCheck
     integer             :: mo, da
     logical             :: open_stats
@@ -367,17 +370,19 @@ contains
        
           if(alarmCheck) then 
              open_stats = .false.
+             call LIS_create_output_directory('SURFACEMODEL')             
              if(LIS_masterproc) then 
-                call LIS_create_output_directory('SURFACEMODEL')
-                call LIS_create_output_filename(n,outfile,&
-                     model_name = 'SURFACEMODEL',&
-                     writeint=LIS_sfmodel_struc(n)%outInterval)
-                if(LIS_sfmodel_struc(n)%stats_file_open) then 
+                if (LIS_sfmodel_struc(n)%stats_file_open) then
                    call LIS_create_stats_filename(n,statsfile,'SURFACEMODEL')
                    LIS_sfmodel_struc(n)%stats_file_open = .false.
-                   open_stats = .true. 
+                   open_stats = .true.
                 endif
              endif
+
+             call LIS_create_output_filename(n,outfile,&
+                  model_name = 'SURFACEMODEL',&
+                  writeint=LIS_sfmodel_struc(n)%outInterval)
+
              ! hkb-- added second set of soil layer thickness for CLSM
              if ( LIS_sfmodel_struc(n)%nsm_layers .eq.  &
                   LIS_sfmodel_struc(n)%nst_layers ) then   

@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -46,19 +48,18 @@ subroutine jules50_getsmpred(n, k,obs_pred)
 !  \item[obs\_pred] model's estimate of observations \newline
 !  \end{description}
 !EOP
-  real                   :: obs_tmp
-  integer                :: i,t,m,gid,kk
-  real                   :: inputs_tp(6), sm_out
-  character*50           :: units_tp(6)
+  integer                :: t
   real                   :: smc1(LIS_rc%npatch(n,LIS_rc%lsm_index))
-  real                   :: tmp1(LIS_rc%nensem(n)),tmp2(LIS_rc%nensem(n)),tmp3(LIS_rc%nensem(n))
 
   do t=1, LIS_rc%npatch(n,LIS_rc%lsm_index)
-! apply the unit conversion. ! In the EnKF equation X(+) = X(-) + K(y-Hx), Units of the terms y and 
-! Hx must be the same. we just need to change the unit of Hx. The Unit of Hx 
+! apply the unit conversion.
+! In the EnKF equation X(+) = X(-) + K(y-Hx), Units of the terms y and
+! Hx must be the same. we just need to change the unit of Hx. The Unit of Hx
 ! from JULES is [kg/m2] therefore we need to change the unit to
-! be consistent with that of y [m3/m3]. ! for the unit conversion FROM [kg/m2] to [M3/M3] we need layer thickness.  ! Here the thickness of the first layer. (which is 10 cm in both PILDAS and JULES) has been used  
-!     smc1(t) = jules50_struc(n)%jules50(t)%smcl_soilt(1) * 1/LIS_sfmodel_struc(n)%lyrthk(1)*1/1000  ! [kg/m2]*1/m*1/(kg/m3) --> [m3/m3] 
+! be consistent with that of y [m3/m3].
+! for the unit conversion FROM [kg/m2] to [M3/M3] we need layer thickness.
+! Here the thickness of the first layer. (which is 10 cm in both PILDAS and JULES) has been used
+!     smc1(t) = jules50_struc(n)%jules50(t)%smcl_soilt(1) * 1/LIS_sfmodel_struc(n)%lyrthk(1)*1/1000  ! [kg/m2]*1/m*1/(kg/m3) --> [m3/m3]
 
 !MN: Eric changed the unit of LIS_sfmodel_struc%lyrthk so LIS_sfmodel_struc%lyrthk is in cm, we
 !use dzsoil instead.
@@ -70,36 +71,6 @@ subroutine jules50_getsmpred(n, k,obs_pred)
        LIS_rc%lsm_index, &
        smc1,&
        obs_pred)
-
-
-
-
-#if 0 
-  tmp1 = LIS_rc%udef
-  tmp2 = LIS_rc%udef
-  tmp3 = LIS_rc%udef
-   do i=1,LIS_rc%npatch(n,LIS_rc%lsm_index)/LIS_rc%nensem(n)
-    if (i.eq.1376)then
-        do m=1,LIS_rc%nensem(n)
-           t = (i-1)*LIS_rc%nensem(n)+m
-                      tmp1(m) = jules50_struc(n)%jules50(t)%smcl_soilt(1)
-	              tmp2(m) = smc1(t)
-                      tmp3(m) = obs_pred(i,m)
-
-	enddo
-	             ! tmp3 = obs_pred(i)
-     endif
-   enddo
-   print*, 'jules_predicted obs, obs_pred obs sapce, obs_pred meas. space', &
-			sum(tmp1)/LIS_rc%nensem(n), &
-			sum(tmp2)/LIS_rc%nensem(n), &
-			sum(tmp3)/LIS_rc%nensem(n)!, &
-                        ! LIS_sfmodel_struc(n)%lyrthk(1)
-   print*, 'obs_pred meas. space', &
-			tmp3
-#endif
-
-
 
 end subroutine jules50_getsmpred
 

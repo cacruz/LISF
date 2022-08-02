@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -22,6 +24,7 @@
 module MODISscaobs_module
 ! !USES: 
   use ESMF
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   implicit none
 
   PRIVATE
@@ -69,7 +72,6 @@ contains
 ! !INTERFACE: 
   subroutine MODISscaobs_setup(k, OBS_State, OBS_Pert_State)
 ! !USES: 
-    use ESMF
     use LIS_coreMod
     use LIS_logMod,  only : LIS_logunit, LIS_verify
     use LIS_perturbMod
@@ -100,7 +102,7 @@ contains
     type(ESMF_Field)       ::  pertField(LIS_rc%nnest)
     type(ESMF_ArraySpec)   ::  intarrspec, realarrspec
     type(ESMF_ArraySpec)   ::  pertArrSpec
-    character*100          ::  MODISscaobsdir
+    character(len=LIS_CONST_PATH_LEN) ::  MODISscaobsdir
     character*100          ::  temp
     real,  allocatable         ::  obsstd(:)
     character*1            ::  vid(2)

@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -18,6 +20,7 @@
 module ARSsm_obsMod
 ! !USES: 
   use ESMF
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 !EOP
   implicit none
   PRIVATE
@@ -33,7 +36,7 @@ module ARSsm_obsMod
 
   type, public ::  ARSsm_obs_data_dec
 
-     character*100         :: odir
+     character(len=LIS_CONST_PATH_LEN) :: odir
      integer               :: yr
      integer               :: n_stns
      character*50, allocatable :: stn_name(:)
@@ -81,14 +84,14 @@ contains
     integer                   ::  n 
     type(ESMF_ArraySpec)      ::  realarrspec
     type(ESMF_Field)          ::  obsField
-    character*100             ::  obsdir
+    character(len=LIS_CONST_PATH_LEN) ::  obsdir
     character*100             ::  vname
-    character*100             ::  obsAttribFile(LIS_rc%nnest)
+    character(len=LIS_CONST_PATH_LEN) ::  obsAttribFile(LIS_rc%nnest)
     integer                 :: k
     integer                 :: ftn
     integer                 :: status
     real                  :: col,row
-    character*100           :: stnlist_file
+    character(len=LIS_CONST_PATH_LEN) :: stnlist_file
 
     allocate(ARSsm_obs_struc(LIS_rc%nnest))
 

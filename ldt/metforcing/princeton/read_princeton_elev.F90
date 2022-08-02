@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 ! !ROUTINE: read_princeton_elev
@@ -81,7 +87,7 @@ subroutine read_princeton_elev(n, findex, princetonelev, elevdiff)
         call LDT_endrun
      endif
      write(LDT_logunit,*) "Reading the PRINCETON elevation map: ", &
-                           princeton_struc(n)%elevfile
+                           trim(princeton_struc(n)%elevfile)
      
    ! Read in free format ascii data:
      ftn = LDT_getNextUnitNumber()

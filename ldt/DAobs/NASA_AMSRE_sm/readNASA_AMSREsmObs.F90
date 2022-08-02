@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -16,6 +22,7 @@ subroutine readNASA_AMSREsmObs(n)
   use ESMF
   use LDT_coreMod,      only : LDT_rc
   use LDT_logMod,       only : LDT_logunit
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_DAobsDataMod
   use NASA_AMSREsm_obsMod, only : NASA_AMSREsmobs
 
@@ -32,7 +39,7 @@ subroutine readNASA_AMSREsmObs(n)
   
   logical           :: alarmcheck, file_exists, readflag
   integer           :: iret
-  character*200     :: name
+  character(len=LDT_CONST_PATH_LEN)     :: name
   real              :: smc(LDT_rc%lnc(n), LDT_rc%lnr(n))
   integer           :: fnd 
   integer           :: c,r
@@ -94,7 +101,7 @@ subroutine read_AMSREsm(n, name)
   use NASA_AMSREsm_obsMod, only : NASA_AMSREsmobs
   implicit none
 
-#if (defined USE_HDF4) 
+#if (defined USE_HDFEOS2)
 #include "hdf.f90"
 #endif
 ! !ARGUMENTS:   
@@ -106,7 +113,7 @@ subroutine read_AMSREsm(n, name)
 !EOP
   real               :: sb_rqc(NASA_AMSREsmobs%mo)
 
-#if (defined USE_HDF4)
+#if (defined USE_HDFEOS2)
   !declare the hdf-eos library functions 
   integer              :: gdopen,gdattach,gddefboxreg,gdrdfld
   integer              :: gdgetpix,gdextreg,gddetach,gdclose
@@ -408,7 +415,7 @@ subroutine NASA_AMSREsm_filename(name, ndir, yr, mo,da)
 
   implicit none
 ! !ARGUMENTS: 
-  character*200      :: name
+  character(len=*)      :: name
   integer           :: yr, mo, da, hr,mn
   character (len=*) :: ndir
 ! 

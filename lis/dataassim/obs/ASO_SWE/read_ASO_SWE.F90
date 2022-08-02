@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -25,6 +27,7 @@ subroutine read_ASO_SWE(n, k, OBS_State, OBS_Pert_State)
   use LIS_DAobservationsMod
   use map_utils
   use UTM_utils
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use ASO_SWE_Mod, only : ASO_SWE_struc
 #if(defined USE_NETCDF3 || defined USE_NETCDF4)
   use netcdf
@@ -72,10 +75,10 @@ subroutine read_ASO_SWE(n, k, OBS_State, OBS_Pert_State)
   integer             :: gid(LIS_rc%obs_ngrid(k))
   integer             :: assimflag(LIS_rc%obs_ngrid(k))
 
-  character*100       :: sweobsdir
+  character(len=LIS_CONST_PATH_LEN) :: sweobsdir
   logical             :: data_update
   logical             :: file_exists
-  character*200       :: name
+  character(len=LIS_CONST_PATH_LEN) :: name
   real                :: latdeg, londeg
   logical             :: alarmCheck
 
@@ -121,7 +124,7 @@ subroutine read_ASO_SWE(n, k, OBS_State, OBS_Pert_State)
      endif
      
      if (readflag) then 
-        write(LIS_logunit,*) 'Reading NASA ASO file ',name
+        write(LIS_logunit,*) 'Reading NASA ASO file ',trim(name)
 
 #if(defined USE_NETCDF3 || defined USE_NETCDF4)        
         call LIS_verify(nf90_open(path=name,mode=NF90_NOWRITE, ncid=ftn),&
@@ -184,11 +187,18 @@ subroutine read_ASO_SWE(n, k, OBS_State, OBS_Pert_State)
            do c=1,LIS_rc%obs_lnc(k)
               if(nswe_ip(c,r).ne.0) then
                  swe_ip(c,r) = swe_ip(c,r)/nswe_ip(c,r)
+! Because of the boundary of the observed image, we screen out 
+! zero snow values
+                 if(swe_ip(c,r).eq.0) then
+                    swe_ip(c,r) = LIS_rc%udef
+                 endif
+
               else
                  swe_ip(c,r) = LIS_rc%udef
               endif
            enddo
         enddo
+
 #endif
 
      endif
@@ -274,9 +284,8 @@ subroutine ASO_SWE_filename(name, ndir, yr, mo,da)
 
   implicit none
 ! !ARGUMENTS: 
-  character*200      :: name
+  character(len=*)  :: name, ndir
   integer           :: yr, mo, da, hr,mn
-  character (len=*) :: ndir
 ! 
 ! !DESCRIPTION: 
 !  This subroutine creates the Level 3 ASO SWE filename based on the time and date 

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -18,6 +24,7 @@ subroutine readWindSatsmObs(n)
   use LDT_timeMgrMod,   only : LDT_get_julss
   use LDT_logMod,       only : LDT_logunit, LDT_getNextUnitNumber, &
        LDT_releaseUnitNumber
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_DAobsDataMod
   use WindSatsm_obsMod, only : WindSatsmobs
   use map_utils
@@ -43,7 +50,7 @@ subroutine readWindSatsmObs(n)
   integer           :: yr,mo,da,hour,min,ss
   real              :: dt
   integer           :: fnd
-  character*100     :: smname,tsname,tmname,clsname
+  character(len=LDT_CONST_PATH_LEN)     :: smname,tsname,tmname,clsname
   logical*1         :: li(WindSatsmobs(n)%mi)
   logical*1         :: lo(LDT_rc%lnc(n)*LDT_rc%lnr(n))
   real              :: sm(WindSatsmobs(n)%mi)

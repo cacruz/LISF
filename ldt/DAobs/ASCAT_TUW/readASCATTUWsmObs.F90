@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -18,6 +24,7 @@ subroutine readASCATTUWsmObs(n)
   use LDT_timeMgrMod,   only : LDT_get_julss
   use LDT_logMod,       only : LDT_logunit, LDT_getNextUnitNumber, &
        LDT_releaseUnitNumber
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_DAobsDataMod
   use ASCATTUWsm_obsMod, only : ASCATTUWsmobs
   use map_utils
@@ -91,6 +98,7 @@ subroutine read_ASCATTUW_data(n, odir, yr,mo,da,sm_data)
 #endif
   use LDT_coreMod,  only : LDT_rc, LDT_domain
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use map_utils,    only : latlon_to_ij
   use ASCATTUWsm_obsMod, only : ASCATTUWsmobs
 
@@ -122,7 +130,7 @@ subroutine read_ASCATTUW_data(n, odir, yr,mo,da,sm_data)
 !EOP
   real, parameter        :: err_threshold = 0.03
   character*200          :: ls_comm, cmd2
-  character*100          :: fname
+  character(len=LDT_CONST_PATH_LEN)          :: fname
   integer                :: ftn1, ftn2
   integer                :: fsize,n_data
   integer                :: i,c,r,t,k

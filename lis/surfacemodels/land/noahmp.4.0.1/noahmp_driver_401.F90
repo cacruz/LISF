@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -9,48 +11,52 @@
 ! Oct 15 2018 Zhuo Wang modifed for implementing Noah-MP 4.0.1 
 
 #undef LIS_NoahMP_TEST 
-#undef WRF_HYDRO  
 ! !INTERFACE
 subroutine noahmp_driver_401(n, ttile, itimestep, &  
-                            latitude, longitude,                                        &
-                            year    , month   , day     , hour    , minute  ,           &
-                            dz8w    ,                                                   & ! new in : model configuration
-                            dt      , sldpth  , nsoil   , nsnow   ,                     & ! in : model configuration  
-                            vegetype, soiltype, shdfac_monthly    , tbot    ,           & ! in : Vegetation/Soil characteristics 
-                            urban_vegetype,                                             & ! in
-                            cropcat,  planting, harvest ,season_gdd,                    & ! in : Vegetation/Soil characteristics
-                            dveg_opt, crs_opt, btr_opt, run_opt, sfc_opt, frz_opt,      & ! in : User options
-                            inf_opt, rad_opt, alb_opt , snf_opt, tbot_opt, stc_opt,     & ! in : User options
-                            gla_opt, sndpth_gla_opt, rsf_opt, soil_opt, pedo_opt,       & ! in : new options
-                            crop_opt, iz0tlnd urban_opt,                                & ! in : new options
-                            soilcomp, soilcL1, soilcL2, soilcL3, soilcL4,               & ! in : new options
-                            tair    , psurf   , wind_e   , wind_n   , qair    ,         & ! in : forcing
-                            swdown  , lwdown  , prcp    ,                               & ! in : forcing
-                            tsk     , hfx     , qfx     , lh      , grdflx   ,          & ! in/out LSM eqv
-                            sfcrunoff, udrunoff, albedo , qsnbot  , subsnow  ,          & ! in/out LSM eqv
-                            snowc   , smc     ,     pah ,                               & ! in/out LSM eqv
-                            sh2o    , tslb    , sneqv   , snowh   , canwat  , acsnom  , & ! in/out LSM eqv
-                            acsnow  , emiss   , rs      ,                               & ! in/out LSM eqv
-                            isnow   , tv      , tg      , canice  , canliq  , eah     , & ! in/out Noah MP only
-                            tah     , cm      , ch      , fwet    , sneqvo  , albold  , & ! in/out Noah MP only
-                            qsnow   , wslake  , zwt     , wa      , wt      , tsno    , & ! in/out Noah MP only
-                            zss     , snowice , snowliq , lfmass  , rtmass  , stmass  , & ! in/out Noah MP only
-                            wood    , stblcp  , fastcp  , lai     , sai     , tauss   , & ! in/out Noah MP only
-                            smoiseq , smcwtd  ,deeprech , rech    ,                     & ! in/out Noah MP only
-                            grain   , gdd     , pgs     ,                               & ! in/out Noah MP only for crop model
-                            gecros_state,                                               & ! in/out gecros model
-                            z0      ,                                                   & ! out
-                            t2mv    , t2mb    , q2mv    , q2mb    ,                     & ! out Noah MP only
-                            trad    , nee     , gpp     , npp     , fveg    , runsf   , & ! out Noah MP only
-                            runsb   , ecan    , edir    , etran   ,                     & ! out Noah MP only
-                            rainf   , snowf   , fsa     , fira    ,                     & ! out Noah MP only
-                            apar    , psn     , sav     , sag     , rssun   , rssha   , & ! out Noah MP only
-                            bgap    , wgap    , tgb     , tgv     , chv     , chb     , & ! out Noah MP only
-                            shg     , shc     , shb     , evg     , evb     , ghv     , & ! out Noah MP only
-                            ghb     , irg     , irc     , irb     , tr      , evc     , & ! out Noah MP only
-                            chleaf  , chuc    , chv2    , chb2    , relsmc              ) ! out Noah MP only
+     latitude, longitude,                                        &
+     year    , month   , day     , hour    , minute  ,           &
+     dz8w    ,                                                   & ! new in : model configuration
+     dt      , sldpth  , nsoil   , nsnow   ,                     & ! in : model configuration  
+     vegetype, soiltype, shdfac_monthly    , tbot    ,           & ! in : Vegetation/Soil characteristics 
+     urban_vegetype,                                             & ! in
+     cropcat,  planting, harvest ,season_gdd,                    & ! in : Vegetation/Soil characteristics
+     dveg_opt, crs_opt, btr_opt, run_opt, sfc_opt, frz_opt,      & ! in : User options
+     inf_opt, rad_opt, alb_opt , snf_opt, tbot_opt, stc_opt,     & ! in : User options
+     gla_opt, sndpth_gla_opt, rsf_opt, soil_opt, pedo_opt,       & ! in : new options
+     crop_opt, iz0tlnd, urban_opt,                               & ! in : new options
+     soilcomp, soilcL1, soilcL2, soilcL3, soilcL4,               & ! in : new options
+     tair    , psurf   , wind_e   , wind_n   , qair    ,         & ! in : forcing
+     swdown  , lwdown  , prcp    ,                               & ! in : forcing
+     tsk     , hfx     , qfx     , lh      , grdflx   ,          & ! in/out LSM eqv
+     sfcrunoff, udrunoff, albedo , qsnbot  , subsnow  ,          & ! in/out LSM eqv
+     snowc   , smc     ,     pah ,                               & ! in/out LSM eqv
+     sh2o    , tslb    , sneqv   , snowh   , canwat  , acsnom  , & ! in/out LSM eqv
+     acsnow  , emiss   , rs      ,                               & ! in/out LSM eqv
+     isnow   , tv      , tg      , canice  , canliq  , eah     , & ! in/out Noah MP only
+     tah     , cm      , ch      , fwet    , sneqvo  , albold  , & ! in/out Noah MP only
+     qsnow   , wslake  , zwt     , wa      , wt      , tsno    , & ! in/out Noah MP only
+     zss     , snowice , snowliq , lfmass  , rtmass  , stmass  , & ! in/out Noah MP only
+     wood    , stblcp  , fastcp  , lai     , sai     , tauss   , & ! in/out Noah MP only
+     smoiseq , smcwtd  ,deeprech , rech    ,                     & ! in/out Noah MP only
+     grain   , gdd     , pgs     ,                               & ! in/out Noah MP only for crop model
+     gecros_state,                                               & ! in/out gecros model
+     t2mv    , t2mb    , q2mv    , q2mb    ,                     & ! out Noah MP only
+     trad    , nee     , gpp     , npp     , fveg    , runsf   , & ! out Noah MP only
+     runsb   , ecan    , edir    , etran   ,                     & ! out Noah MP only
+     rainf   , snowf   , fsa     , fira    ,                     & ! out Noah MP only
+     apar    , psn     , sav     , sag     , rssun   , rssha   , & ! out Noah MP only
+     bgap    , wgap    , tgb     , tgv     , chv     , chb     , & ! out Noah MP only
+     shg     , shc     , shb     , evg     , evb     , ghv     , & ! out Noah MP only
+     ghb     , irg     , irc     , irb     , tr      , evc     , & ! out Noah MP only
+     fgev_pet, fcev_pet, fctr_pet,                               & ! PET 
+     chleaf  , chuc    , chv2    , chb2    , relsmc,             &
+     !ag (12Sep2019)
+     rivsto, fldsto, fldfrc,&
+     parameters ,                                                & ! out Noah MP only
+     sfcheadrt , INFXSRT, soldrain)                                ! For WRF-Hydro
 
-  use module_sf_noahmpdrv_401
+  use module_sf_noahmpdrv_401, only: noahmplsm_401
+  use module_sf_noahmplsm_401
   use LIS_coreMod, only    : LIS_rc
   use LIS_logMod,  only    : LIS_logunit, LIS_endrun
   use LIS_timeMgrMod, only : LIS_date2time, LIS_tick
@@ -111,7 +117,7 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
 
   ! Added by Zhuo Wang and Shugong Wang
   integer, intent(in) :: gla_opt              ! glacier option (1->phase change; 2->simple)
-  integer, intent(in) :: sndpth_gla_opt       ! snow depth max for glacier model [mm] 
+  integer, intent(in) :: sndpth_gla_opt       ! snow depth max for glacier model [mm]
   integer, intent(in) :: rsf_opt              ! surface resistance (1->Sakaguchi/Zeng; 2->Seller; 3->mod Sellers; 4->1+snow)
   integer, intent(in) :: soil_opt             ! soil configuration option
   integer, intent(in) :: pedo_opt             ! soil pedotransfer function option
@@ -164,7 +170,6 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
 
   ! in/out Noah MP only
   integer, intent(inout) :: isnow             ! actual no. of snow layers 
-  real, intent(inout) :: z0                   ! combined z0 sent to coupled model
   real, intent(inout) :: tv                   ! vegetation leaf temperature
   real, intent(inout) :: tg                   ! bulk ground surface temperature
   real, intent(inout) :: canice               ! canopy-intercepted ice (mm)
@@ -242,11 +247,19 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
   real, intent(out) :: irb                    ! bare net longwave rad. [w/m2] [+ to atm]
   real, intent(out) :: tr                     ! transpiration [w/m2]  [+ to atm]
   real, intent(out) :: evc                    ! canopy evaporation heat [w/m2]  [+ to atm]
+  real, intent(out) :: fgev_pet
+  real, intent(out) :: fcev_pet
+  real, intent(out) :: fctr_pet
   real, intent(out) :: chleaf                 ! leaf exchange coefficient
   real, intent(out) :: chuc                   ! under canopy exchange coefficient 
   real, intent(out) :: chv2                   ! veg 2m exchange coefficient
   real, intent(out) :: chb2                   ! bare 2m exchange coefficient
   real, intent(out) :: relsmc(nsoil)          ! relative soil moisture [-]
+  !ag (05Jan2021)
+  real,   intent(in)  :: rivsto               ! river storage [m s-1]
+  real,   intent(in)  :: fldsto               ! flood storage [m s-1]
+  real,   intent(in)  :: fldfrc               ! flooded fraction [-]
+
 
   type(noahmp_parameters) :: parameters
 
@@ -296,7 +309,7 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
   real    :: soldn
   real    :: lwdn
   real    :: sfcprs(2)            ! multiple layer is required 
-  real    :: sfcheadrt            ! For WRF-Hydro
+  real, dimension(1,1) :: sfcheadrt,INFXSRT,soldrain ! For WRF-Hydro
   real    :: dz8w3d(2) 
   real, allocatable, dimension(:) :: zsoil
   real, allocatable, dimension(:) :: zsnso
@@ -442,12 +455,20 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
   real, dimension(1,1) :: irbout
   real, dimension(1,1) :: trout
   real, dimension(1,1) :: evcout
+  real, dimension(1,1) :: fgev_petout
+  real, dimension(1,1) :: fcev_petout
+  real, dimension(1,1) :: fctr_petout
   real, dimension(1,1) :: chleafout
   real, dimension(1,1) :: chucout
   real, dimension(1,1) :: chv2out
   real, dimension(1,1) :: chb2out
   real, dimension(1,nsoil,1) :: relsmcout
   real, dimension(1,1) :: rsout
+    !ag(05Jan2021)
+  real, dimension(1,1) :: rivstoin
+  real, dimension(1,1) :: fldstoin
+  real, dimension(1,1) :: fldfrcin
+
 
    ids = 1
    ide = 1
@@ -473,7 +494,9 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
    ! Fraction of grid determining seaice (from WRF and HRLDAS)
    xice_thres = 0.5
 
+#ifndef WRF_HYDRO
    sfcheadrt = 0.0
+#endif
 ! SR = frozen precip fraction.  For offline, it is set to zero.
 ! If running coupled to WRF, then SR is set by the WRF model.
    if (snf_opt.ne.4) then
@@ -545,11 +568,12 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
   call calc_declin_401(nowdate(1:4)//"-"//nowdate(5:6)//"-"//nowdate(7:8)//"_"//nowdate(9:10)//":"//nowdate(11:12)//":00", &
       latitude, longitude, cosz, yearlen, julian)
 
-  if ( dveg_opt == 1 ) then
-    ! with dveg_opt==1, shdfac is fed directly to fveg
+  if ((dveg_opt.eq.1).or.(dveg_opt.eq.6).or.(dveg_opt.eq.7)) then
+    ! with dveg_opt==1/6/7, shdfac is fed directly to fveg
     vegfra = month_d_401(shdfac_monthly, nowdate)
   else
-    ! with dveg_opt==2, fveg is computed from lai and sai, and shdfac is unused
+    ! with dveg_opt==2/3/8, fveg is computed from lai and sai, and shdfac is unused
+    ! with dveg_opt==4/5/9, fveg is set to the maximum shdfac, and shdfac is unused
     vegfra = -1.E36   ! To match with HRLDAS initialization
   endif
   vegmax = maxval(shdfac_monthly)
@@ -694,6 +718,9 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
   irbout(1,1)   = irb
   trout(1,1)    = tr
   evcout(1,1)   = evc
+  fgev_petout(1,1) = fgev_pet
+  fcev_petout(1,1) = fcev_pet
+  fctr_petout(1,1) = fctr_pet
   chleafout(1,1) = chleaf
   chucout(1,1)  = chuc
   chv2out(1,1)  = chv2
@@ -703,58 +730,66 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
 
 ! Code from module_NoahMP_hrldas_driver.F.  Initial guess only.
   if ((trim(LIS_rc%startcode).eq."coldstart").and.(itimestep.eq.1)) then
-      eahinout(1,1) = sfcprs(1) * (q2(1)/(0.622+q2(1)))
-      tahinout(1,1) = sfctmp(1)
-      cminout(1,1)  = 0.1
-      chinout(1,1)  = 0.1
+     eahinout(1,1) = sfcprs(1) * (q2(1)/(0.622+q2(1)))
+     tahinout(1,1) = sfctmp(1)
+     cminout(1,1)  = 0.1
+     chinout(1,1)  = 0.1
   endif
+  
+     !ag(05Jan2021)
+  rivstoin(1,1)=rivsto
+  fldstoin(1,1)=fldsto
+  fldfrcin(1,1)=fldfrc
+
 
   call noahmplsm_401  (LIS_rc%udef,  & ! in : LIS undefined value (David Mocko)
-                       itimestep,yearlen , julian  , coszin    , latin   , lonin  , & ! in : time/space-related
-                       dz8w3d(1), dt      , zsoil   , nsoil   , dx      ,           & ! in : model configuration 
-                       vegetypein, soiltypein, vegfrain, vegmaxin, tbotin  ,        & ! in : Vegetation/Soil characteristics
-                       xlandin , xicein  , xice_thres,                             & ! in : Vegetation/Soil characteristics
-                       cropcatin , plantingin, harvestin ,season_gddin,                    &
-                       dveg_opt, crs_opt , btr_opt ,run_opt  , sfc_opt , frz_opt,  & ! in : user options
-                       inf_opt , rad_opt , alb_opt ,snf_opt  , tbot_opt, stc_opt,  & ! in : user options
-                       gla_opt , sndpth_gla_opt, rsf_opt , soil_opt,pedo_opt , crop_opt,           & ! in : user options
-                       iz0tlnd , urban_opt,                                        & ! in : user options
-                       soilcompin, soilcL1in, soilcL2in, soilcL3in, soilcL4in,               & ! in : user options
-                       sfctmp(1)  , q2(1)  , uu(1)    , vv(1) , soldnin , lwdnin  , & ! in : forcing 
-                       sfcprs(1)  , prcpin  , srin      ,                             & ! in : forcing
-
-                       tskinout, hfxinout, qfxinout, lhinout , grdflxinout  , smstavinout  , & ! in/out LSM eqv 
-
-                       smstotinout  ,sfcrunoffinout, udrunoffinout, albedoout  , qsnbot  , subsnow, & ! in/out LSM eqv 
-                       snowcinout   , smcinout     ,           pah,                                 & ! in/out LSM eqv
-                       sh2oinout    , tslbinout    , sneqvinout   , snowhinout   , canwatinout  , acsnominout  , & ! in/out LSM eqv
-                       acsnowinout  , emissinout   , qsfcinout    , z0inout      , zntinout     ,           & ! in/out LSM eqv
-
-                       isnowinout   , tvinout      , tginout      , caniceinout  , canliqinout  , eahinout     , & ! in/out Noah MP only
-                       tahinout     , cminout      , chinout      , fwetinout    , sneqvoinout  , alboldinout  , & ! in/out Noah MP only
-                       qsnowinout   , wslakeinout  , zwtinout     , wainout      , wtinout      , tsnowinout    , & ! in/out Noah MP only
-                       zsnsoinout     , sniceinout , snliqinout , lfmassinout  , rtmassinout  , stmassinout  , & ! in/out Noah MP only
-                       woodinout    , stblcpinout  , fastcpinout  , laiinout     , saiinout     , taussinout   , & ! in/out Noah MP only
-                       smoiseqinout , smcwtdinout  ,deeprechinout , rechinout    , graininout   , gddinout     , & ! in/out Noah MP only 
-                       pgsinout     ,                                                   & ! in/out Noah MP only
-                       gecros_stateinout,                                               & ! in/out gecros model
-
-                       t2mvout , t2mbout , q2mvout , q2mbout , relsmcout,          & ! out Noah MP only
-                       tradout , neeout  , gppout  , nppout  , fvegout , runsfout, & ! out Noah MP only
-                       runsbout, ecanout , edirout , etranout, fsaout  , firaout , & ! out Noah MP only
-                       aparout , psnout  , savout  , sagout  , rssunout, rsshaout, & ! out Noah MP only
-                       bgapout , wgapout , tgvout  , tgbout  , chvout  , chbout  , & ! out Noah MP only
-                       shgout  , shcout  , shbout  , evgout  , evbout  , ghvout  , & ! out Noah MP only
-                       ghbout  , irgout  , ircout  , irbout  , trout   , evcout  , & ! out Noah MP only
-                       chleafout  , chucout , chv2out , chb2out , rsout , fpice  , & ! out Noah MP only
-                       parameters, &
+       itimestep,yearlen , julian  , coszin    , latin   , lonin  , & ! in : time/space-related
+       dz8w3d(1), dt      , zsoil   , nsoil   , dx      ,           & ! in : model configuration 
+       vegetypein, soiltypein, vegfrain, vegmaxin, tbotin  ,        & ! in : Vegetation/Soil characteristics
+       xlandin , xicein  , xice_thres,                             & ! in : Vegetation/Soil characteristics
+       cropcatin , plantingin, harvestin ,season_gddin,                    &
+       dveg_opt, crs_opt , btr_opt ,run_opt  , sfc_opt , frz_opt,  & ! in : user options
+       inf_opt , rad_opt , alb_opt ,snf_opt  , tbot_opt, stc_opt,  & ! in : user options
+       gla_opt , sndpth_gla_opt, rsf_opt , soil_opt,pedo_opt , crop_opt,           & ! in : user options
+       iz0tlnd , urban_opt,                                        & ! in : user options
+       soilcompin, soilcL1in, soilcL2in, soilcL3in, soilcL4in,               & ! in : user options
+       sfctmp(1)  , q2(1)  , uu(1)    , vv(1) , soldnin , lwdnin  , & ! in : forcing 
+       sfcprs(1)  , prcpin  , srin      ,                             & ! in : forcing
+       
+       tskinout, hfxinout, qfxinout, lhinout , grdflxinout  , smstavinout  , & ! in/out LSM eqv 
+       
+       smstotinout  ,sfcrunoffinout, udrunoffinout, albedoout  , qsnbot  , subsnow, & ! in/out LSM eqv 
+       snowcinout   , smcinout     ,           pah,                                 & ! in/out LSM eqv
+       sh2oinout    , tslbinout    , sneqvinout   , snowhinout   , canwatinout  , acsnominout  , & ! in/out LSM eqv
+       acsnowinout  , emissinout   , qsfcinout    , z0inout      , zntinout     ,           & ! in/out LSM eqv
+       
+       isnowinout   , tvinout      , tginout      , caniceinout  , canliqinout  , eahinout     , & ! in/out Noah MP only
+       tahinout     , cminout      , chinout      , fwetinout    , sneqvoinout  , alboldinout  , & ! in/out Noah MP only
+       qsnowinout   , wslakeinout  , zwtinout     , wainout      , wtinout      , tsnowinout    , & ! in/out Noah MP only
+       zsnsoinout     , sniceinout , snliqinout , lfmassinout  , rtmassinout  , stmassinout  , & ! in/out Noah MP only
+       woodinout    , stblcpinout  , fastcpinout  , laiinout     , saiinout     , taussinout   , & ! in/out Noah MP only
+       smoiseqinout , smcwtdinout  ,deeprechinout , rechinout    , graininout   , gddinout     , & ! in/out Noah MP only 
+       pgsinout     ,                                                   & ! in/out Noah MP only
+       gecros_stateinout,                                               & ! in/out gecros model
+       
+       t2mvout , t2mbout , q2mvout , q2mbout , relsmcout,          & ! out Noah MP only
+       tradout , neeout  , gppout  , nppout  , fvegout , runsfout, & ! out Noah MP only
+       runsbout, ecanout , edirout , etranout, fsaout  , firaout , & ! out Noah MP only
+       aparout , psnout  , savout  , sagout  , rssunout, rsshaout, & ! out Noah MP only
+       bgapout , wgapout , tgvout  , tgbout  , chvout  , chbout  , & ! out Noah MP only
+       shgout  , shcout  , shbout  , evgout  , evbout  , ghvout  , & ! out Noah MP only
+       ghbout  , irgout  , ircout  , irbout  , trout   , evcout  , & ! out Noah MP only
+       fgev_petout, fcev_petout, fctr_petout,                      & ! PET 
+       chleafout  , chucout , chv2out , chb2out , rsout , fpice  , & ! out Noah MP only
+       parameters, &
+       rivstoin,fldstoin,fldfrcin,                                 &
 #ifdef WRF_HYDRO
-                       sfcheadrt, INFXSRT, soldrain,                               &
+       sfcheadrt, INFXSRT, soldrain,                               &
 #endif
-                       ids,ide,  jds,jde,  kds,kde,                                &
-                       ims,ime,  jms,jme,  kms,kme,                                &
-                       its,ite,  jts,jte,  kts,kte)
-
+       ids,ide,  jds,jde,  kds,kde,                                &
+       ims,ime,  jms,jme,  kms,kme,                                &
+       its,ite,  jts,jte,  kts,kte)
+  
   ! Added by Zhuo Wang and Shugong on 10/30/2018
   tsk = tskinout(1,1)
   hfx = hfxinout(1,1)
@@ -872,7 +907,15 @@ subroutine noahmp_driver_401(n, ttile, itimestep, &
 
   rainf = prcp * (1.0 - fpice)/dt  ! added by Shugong for LIS output 
   snowf = prcp * fpice/dt          ! added by Shugong for LIS output 
+  fgev_pet = fgev_petout(1,1)      ! 08/30/2021 Shugong 
+  fcev_pet = fcev_petout(1,1)
+  fctr_pet = fctr_petout(1,1)
   z0 = z0inout(1,1)
+
+#ifndef WRF_HYDRO
+  INFXSRT  = 0.0
+  soldrain = 0.0
+#endif
 
   deallocate(zsoil)
   deallocate(zsnso)

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_OPTUEMod
@@ -21,6 +27,7 @@ module LDT_OPTUEMod
   use LDT_historyMod
   use LDT_logMod
   use LDT_paramDataMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
 
@@ -69,7 +76,7 @@ contains
     integer :: n, i,t,c,r
     integer :: rc
     integer :: ftn
-    character*100 :: filename
+    character(len=LDT_CONST_PATH_LEN) :: filename
     real, allocatable :: fitness(:,:),avgfitness(:,:)
     logical           :: file_exists
 ! ______________________________________________________________

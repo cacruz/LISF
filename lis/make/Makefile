@@ -140,6 +140,7 @@ realclean:
 # Additional prerequisite rules not found by makedep.py.
 # NONE
 
+include ./Crocus.make
 %.o: %.F
 	$(FC77) -cpp $(FFLAGS77) $(HEADER_DIRS) $<
 
@@ -165,6 +166,13 @@ version.o: version.F90
 version.F90:
 	@echo "Building version file $@"
 	sh build_version.sh
+
+ifeq ($(LIS_ARCH),cray_cray)
+model_interface_mod.o: model_interface_mod.F90
+	$(FC) $(FFLAGS) -O0 $(HEADER_DIRS) $<
+soil_htc_jls_mod.o: soil_htc_jls_mod.F90
+	$(FC) $(FFLAGS) -O0 $(HEADER_DIRS) $<
+endif
 
 .PHONY: help
 help:

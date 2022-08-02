@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -118,6 +120,8 @@ contains
     implicit none
     integer :: n, i
     integer :: rc
+    logical :: SubModelIsCrocus    
+    
 
     TRACE_ENTER("soils_init")
     allocate(LIS_soils(LIS_rc%nnest))
@@ -126,19 +130,18 @@ contains
        if(LIS_rc%usetexturemap(n).ne."none".and.&
             LIS_rc%usesoilfractionmap(n).ne."none") then 
 
-          write(LIS_logunit,*) '[ERR] Please select either the soil texture or the soil '
-          write(LIS_logunit,*) '[ERR] fraction dataset. Both should not be enabled '
-          write(LIS_logunit,*) '[ERR] simultaneously ...'
-          call LIS_endrun()
-
+            write(LIS_logunit,*) '[WARN] Both soil texture and soil fraction dataset are selected.'
+            write(LIS_logunit,*) '[WARN] Both should generally not be enabled simultaneously.'
+            write(LIS_logunit,*) '[WARN] For now, the soil texture will be used; the soil fraction'
+            write(LIS_logunit,*) '[WARN] will be ignored. However, users should double-check'
+            write(LIS_logunit,*) '[WARN] the output of "Soiltype:" via the MODEL OUTPUT TBL.'
        endif
 
        if(LIS_rc%usetexturemap(n).ne."none") then           
           call read_soiltexture(n)
-       else
-          if(LIS_rc%usesoilfractionmap(n).ne."none") then 
-             call read_soilfraction(n)
-          endif
+       endif
+       if(LIS_rc%usesoilfractionmap(n).ne."none") then 
+          call read_soilfraction(n)
        endif
        if(LIS_rc%usesoilcolormap(n).ne."none") then 
           allocate(LIS_soils(n)%color(LIS_rc%lnc(n),LIS_rc%lnr(n)))
@@ -221,35 +224,34 @@ contains
           call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_SOILTYPE,vlevel=1,&
                                            value=temp(t),unit="-",direction="-")
        enddo
-    else
-       if(LIS_rc%usesoilfractionmap(n).ne."none") then 
-          temp = LIS_rc%udef
-          do t=1,LIS_rc%ntiles(n)
-             if(LIS_domain(n)%tile(t)%index.ne.-1) then 
-                temp(t) = LIS_domain(n)%tile(t)%sand
-             endif
-             call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_SANDFRAC,vlevel=1,&
-                                           value=temp(t),unit="-",direction="-")
-          enddo
-
-          temp = LIS_rc%udef
-          do t=1,LIS_rc%ntiles(n)
-             if(LIS_domain(n)%tile(t)%index.ne.-1) then 
-                temp(t) =LIS_domain(n)%tile(t)%clay
-             endif
-             call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_CLAYFRAC,vlevel=1,&
-                                           value=temp(t),unit="-",direction="-")
-          enddo
-
-          temp = LIS_rc%udef
-          do t=1,LIS_rc%ntiles(n)
-             if(LIS_domain(n)%tile(t)%index.ne.-1) then 
-                temp(t) = LIS_domain(n)%tile(t)%silt
-             endif
-             call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_SILTFRAC,vlevel=1,&
-                                           value=temp(t),unit="-",direction="-")
-          enddo
-       endif
+    endif
+    if(LIS_rc%usesoilfractionmap(n).ne."none") then 
+       temp = LIS_rc%udef
+       do t=1,LIS_rc%ntiles(n)
+          if(LIS_domain(n)%tile(t)%index.ne.-1) then 
+             temp(t) = LIS_domain(n)%tile(t)%sand
+          endif
+          call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_SANDFRAC,vlevel=1,&
+               value=temp(t),unit="-",direction="-")
+       enddo
+       
+       temp = LIS_rc%udef
+       do t=1,LIS_rc%ntiles(n)
+          if(LIS_domain(n)%tile(t)%index.ne.-1) then 
+             temp(t) =LIS_domain(n)%tile(t)%clay
+          endif
+          call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_CLAYFRAC,vlevel=1,&
+               value=temp(t),unit="-",direction="-")
+       enddo
+       
+       temp = LIS_rc%udef
+       do t=1,LIS_rc%ntiles(n)
+          if(LIS_domain(n)%tile(t)%index.ne.-1) then 
+             temp(t) = LIS_domain(n)%tile(t)%silt
+          endif
+          call LIS_diagnoseSurfaceOutputVar(n,t,LIS_MOC_SILTFRAC,vlevel=1,&
+               value=temp(t),unit="-",direction="-")
+       enddo
     endif
 
     if(LIS_rc%usesoilcolormap(n).ne."none") then 
@@ -305,13 +307,11 @@ contains
     do n=1,LIS_rc%nnest
        if(LIS_rc%usetexturemap(n).ne."none") then !read soil texture
           deallocate(LIS_soils(n)%texture)
-       else
-          if(LIS_rc%usesoilfractionmap(n).ne."none") then 
-             deallocate(LIS_soils(n)%sand)
-             deallocate(LIS_soils(n)%clay)
-             deallocate(LIS_soils(n)%silt)
-          endif
-          deallocate(LIS_soils(n)%texture)
+       endif
+       if(LIS_rc%usesoilfractionmap(n).ne."none") then 
+          deallocate(LIS_soils(n)%sand)
+          deallocate(LIS_soils(n)%clay)
+          deallocate(LIS_soils(n)%silt)
        endif
        if(LIS_rc%usesoilcolormap(n).ne."none") then 
           deallocate(LIS_soils(n)%color)
@@ -405,22 +405,17 @@ subroutine read_porosity(n)
      ios = nf90_inq_varid(nid,'POROSITY',porosityid)
      call LIS_verify(ios,'POROSITY field not found in the LIS param file')
 
-     allocate(porosity(LIS_rc%gnc(n),LIS_rc%gnr(n),3))
      allocate(LIS_soils(n)%porosity(LIS_rc%lnc(n),LIS_rc%lnr(n),3))
 
-     ios = nf90_get_var(nid,porosityid,porosity)
+     ios = nf90_get_var(nid,porosityid,LIS_soils(n)%porosity,&
+          start=(/LIS_ews_halo_ind(n,LIS_localPet+1),&
+          LIS_nss_halo_ind(n,LIS_localPet+1),1/),&
+          count=(/LIS_rc%lnc(n),LIS_rc%lnr(n),3/))
      call LIS_verify(ios,'Error in nf90_get_var in read_porosity')
      
      ios = nf90_close(nid)
      call LIS_verify(ios,'Error in nf90_close in read_porosity')
 
-     LIS_soils(n)%porosity(:,:,:) = &
-          porosity(LIS_ews_halo_ind(n,LIS_localPet+1):&         
-          LIS_ewe_halo_ind(n,LIS_localPet+1), &
-          LIS_nss_halo_ind(n,LIS_localPet+1): &
-          LIS_nse_halo_ind(n,LIS_localPet+1),:)
-     
-     deallocate(porosity)
   else
      write(LIS_logunit,*) '[ERR] porosity map: ',LIS_rc%paramfile(n), ' does not exist'
      write(LIS_logunit,*) '[ERR] program stopping ...'
@@ -506,24 +501,18 @@ subroutine read_soiltexture(n)
      allocate(LIS_soils(n)%texture(LIS_rc%lnc(n),LIS_rc%lnr(n), &
           LIS_rc%nsoiltypes))
 
-     allocate(txt(LIS_rc%gnc(n),LIS_rc%gnr(n),LIS_rc%nsoiltypes))
-
      ios = nf90_inq_varid(nid,'TEXTURE',txtid)
      call LIS_verify(ios,'TEXTURE field not found in the LIS param file')
 
-     ios = nf90_get_var(nid,txtid,txt)
+     ios = nf90_get_var(nid,txtid,LIS_soils(n)%texture, &
+          start=(/LIS_ews_halo_ind(n,LIS_localPet+1),&
+          LIS_nss_halo_ind(n,LIS_localPet+1),1/),&
+          count=(/LIS_rc%lnc(n),LIS_rc%lnr(n),LIS_rc%nsoiltypes/))
      call LIS_verify(ios,'Error in nf90_get_var in read_soiltexture')
 
      ios = nf90_close(nid)
      call LIS_verify(ios,'Error in nf90_close in read_soiltexture')
 
-     LIS_soils(n)%texture(:,:,:) = txt(&
-          LIS_ews_halo_ind(n,LIS_localPet+1):&         
-          LIS_ewe_halo_ind(n,LIS_localPet+1), &
-          LIS_nss_halo_ind(n,LIS_localPet+1): &
-          LIS_nse_halo_ind(n,LIS_localPet+1),:)
-
-     deallocate(txt)
   else
      write(LIS_logunit,*) '[ERR] soiltexture map: ',LIS_rc%paramfile(n), &
           ' does not exist'
@@ -616,38 +605,23 @@ subroutine read_soilfraction(n)
      allocate(LIS_soils(n)%clay(LIS_rc%lnc(n),LIS_rc%lnr(n), &
           LIS_rc%nsoilfbands))
 
-     allocate(sand(LIS_rc%gnc(n),LIS_rc%gnr(n),LIS_rc%nsoilfbands))
-     allocate(clay(LIS_rc%gnc(n),LIS_rc%gnr(n),LIS_rc%nsoilfbands))
-
      ios = nf90_inq_varid(nid,'SAND',sandid)
      call LIS_verify(ios,'SAND field not found in the LIS param file')
 
-     ios = nf90_get_var(nid,sandid,sand)
+     ios = nf90_get_var(nid,sandid,LIS_soils(n)%sand,&
+          start=(/LIS_ews_halo_ind(n,LIS_localPet+1),&
+          LIS_nss_halo_ind(n,LIS_localPet+1),1/),&
+          count=(/LIS_rc%lnc(n),LIS_rc%lnr(n),LIS_rc%nsoilfbands/))
      call LIS_verify(ios,'Error in nf90_get_var in read_soilfraction')
-
-     LIS_soils(n)%sand(:,:,:) = sand(&
-          LIS_ews_halo_ind(n,LIS_localPet+1):&         
-          LIS_ewe_halo_ind(n,LIS_localPet+1), &
-          LIS_nss_halo_ind(n,LIS_localPet+1): &
-          LIS_nse_halo_ind(n,LIS_localPet+1),:)
-
-     deallocate(sand)
 
      ios = nf90_inq_varid(nid,'CLAY',clayid)
      call LIS_verify(ios,'CLAY field not found in the LIS param file')
 
-     ios = nf90_get_var(nid,clayid,clay)
+     ios = nf90_get_var(nid,clayid,LIS_soils(n)%clay,&
+          start=(/LIS_ews_halo_ind(n,LIS_localPet+1),&
+          LIS_nss_halo_ind(n,LIS_localPet+1),1/),&
+          count=(/LIS_rc%lnc(n),LIS_rc%lnr(n),LIS_rc%nsoilfbands/))
      call LIS_verify(ios,'Error in nf90_get_var in read_soilfraction')
-
-     LIS_soils(n)%clay(:,:,:) = clay(&
-          LIS_ews_halo_ind(n,LIS_localPet+1):&         
-          LIS_ewe_halo_ind(n,LIS_localPet+1), &
-          LIS_nss_halo_ind(n,LIS_localPet+1): &
-          LIS_nse_halo_ind(n,LIS_localPet+1),:)
-
-     deallocate(clay)
-
-     allocate(soilfgrd(LIS_rc%gnc(n),LIS_rc%gnr(n),LIS_rc%nsoilfbands))
 
      allocate(LIS_soils(n)%soilffgrd(LIS_rc%lnc(n),LIS_rc%lnr(n),&
           LIS_rc%nsoilfbands))
@@ -655,16 +629,11 @@ subroutine read_soilfraction(n)
      ios = nf90_inq_varid(nid,'SOILSFGRD',soilfgrdid)
      call LIS_verify(ios,'SOILSFGRD field not found in the LIS param file')
 
-     ios = nf90_get_var(nid,soilfgrdid,soilfgrd)
+     ios = nf90_get_var(nid,soilfgrdid,LIS_soils(n)%soilffgrd,&
+          start=(/LIS_ews_halo_ind(n,LIS_localPet+1),&
+          LIS_nss_halo_ind(n,LIS_localPet+1),1/),&
+          count=(/LIS_rc%lnc(n),LIS_rc%lnr(n),LIS_rc%nsoilfbands/))
      call LIS_verify(ios,'Error in nf90_get_var in read_soilfraction')
-
-     LIS_soils(n)%soilffgrd(:,:,:) = soilfgrd(&
-          LIS_ews_halo_ind(n,LIS_localPet+1):&         
-          LIS_ewe_halo_ind(n,LIS_localPet+1), &
-          LIS_nss_halo_ind(n,LIS_localPet+1): &
-          LIS_nse_halo_ind(n,LIS_localPet+1),:)
-     
-     deallocate(soilfgrd)
 
      ios = nf90_close(nid)
      call LIS_verify(ios,'Error in nf90_close in read_soilfraction')

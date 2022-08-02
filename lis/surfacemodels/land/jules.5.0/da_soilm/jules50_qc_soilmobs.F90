@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -12,13 +14,16 @@
 ! !REVISION HISTORY:
 ! 25Feb2008: Sujay Kumar: Initial Specification
 ! 23Apr2018: Mahdi Navari: Modified for JULES 5.0 
+! 06Mar2020: Yonghwan kwon: Added forest fraction QC.
+!                           A forest fraction threshold of 0.4 is suggested
+!                           based on comparison with Noah.3.9 and Noah-MP.4.0.1
 !
 ! !INTERFACE:
 subroutine jules50_qc_soilmobs(n,k,OBS_State)
 ! !USES:
   use ESMF
   use LIS_coreMod
-  use LIS_logMod,  only : LIS_verify
+  use LIS_logMod,  only : LIS_verify, LIS_endrun, LIS_logunit
   use LIS_constantsMod, only : LIS_CONST_TKFRZ
   use LIS_DAobservationsMod
   use jules50_lsmMod
@@ -168,7 +173,7 @@ sneqv = 0
       !! IF(SNOWH.GT.0.)  THEN
       !!   BDSNO    = SNEQV / SNOWH ! SNOWH[mm], SNEQV[mm]
       !!   FMELT    = (BDSNO/100.)**M
-      !!   FSNO     = TANH( SNOWH /(2.5* Z0 * FMELT)) 
+      !!   FSNO     = TANH( SNOWH /(2.5* Z0 * FMELT))
       !! ENDIF
       !if (jules50_struc(n)%jules50(t)%snowdepth(pft).GT.0.) then ! m
       !   BDSNO(t)    = sneqv(t) / jules50_struc(n)%jules50(t)%snowdepth(pft) * 100 !kg/m2(=mm)/(m*100) 
@@ -193,31 +198,14 @@ sneqv = 0
 
 
       !MN:fveg is used for 12-month green vegetation fraction (i.e., noah33_struc(n)%noah(:)%shdfac)  
-      !print*,'l_aggregate', l_aggregate       
       if(.NOT. l_aggregate) then   
-         print*,'Please set the l_aggregate to .true. in the jules_surface.nml ' 
-         stop         
+         write(LIS_logunit, *) 'Please set the l_aggregate to .true. in the jules_surface.nml '
+         call LIS_endrun
       else
-       do l=1,5 !Broadleaf trees, Needleleaf trees, C3 (temperate) grass, C4 (tropical) grass, Shrubs
+       do l=1,2 !Broadleaf trees, Needleleaf trees, C3 (temperate) grass, C4 (tropical) grass, Shrubs  !Yonghwan Kwon
          fveg(t) = fveg(t) + jules50_struc(n)%jules50(t)%surft_frac(l)   
-         !print*,'t, l',t, l,jules50_struc(n)%jules50(t)%surft_frac(l),fveg(t)         
        enddo 
       endif          
-      !print*,'t, l',t, l,jules50_struc(n)%jules50(t)%surft_frac(l),fveg(t)  
-      !print*,''
-
-#if 0 
-!       !print*, jules50_struc(n)%ntype
-!       !print*, LIS_rc%npatch(n,LIS_rc%lsm_index)
-!       !print*, 'l_aggregate', l_aggregate
-!       do l=1,5 !Broadleaf trees, Needleleaf trees, C3 (temperate) grass, C4 (tropical) grass, Shrubs
-!         !print*, 't,l', t,l
-!         !fveg(t) = fveg(t) + jules50_struc(n)%jules50(t)%frac(l)  
-!         !print*,'frac', jules50_struc(n)%jules50(t)%frac(l) 
-!         fveg(t) = fveg(t) + jules50_struc(n)%jules50(t)%surft_frac(l)   
-!         print*,'t, l',t, l,jules50_struc(n)%jules50(t)%surft_frac(l),fveg(t)   
-!       enddo         
-#endif 
 
       !!frac_tmp(t)= jules50_struc(n)%jules50(t)%frac(pft)
       !frac_tmp(t)= 1-EXP(-0.5*jules50_struc(n)%jules50(t)%lai(pft))
@@ -413,10 +401,8 @@ sneqv = 0
 !MN Note: By the time this routine is called, the obs soil moisture has already been rescaled into the volumetric units.
         elseif(smcmax_obs(t)-smobs(t).lt.0.02) then 
            smobs(t) = LIS_rc%udef
-!#if 0
-        !elseif(shdfac_obs(t).gt.0.7) then ! vegetation fraction    !Yonghwan Kwon: Temporary commented out
-        !   smobs(t) = LIS_rc%udef                                            
-!#endif  
+        elseif(shdfac_obs(t).gt.0.4) then ! vegetation fraction    !Yonghwan Kwon
+           smobs(t) = LIS_rc%udef
 !In some soil types wilting point is very high e.g. 0.237 m3/m3
         !elseif(smobs(t) - smcwlt_obs(t).lt.0.02) then  ! changed from 0.02 to ... 
         !    smobs(t) = LIS_rc%udef                           !Yonghwan Kwon: Temporary commented out

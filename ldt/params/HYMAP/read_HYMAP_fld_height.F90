@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -55,7 +61,7 @@ subroutine read_HYMAP_fld_height(n, array)
 
   inquire(file=trim(HYMAP_struc(n)%fldheightfile), exist=file_exists)
   if(.not.file_exists) then 
-     write(LDT_logunit,*) '[ERR] Fldheight map, ',trim(HYMAP_struc(n)%fldheightfile),&
+     write(LDT_logunit,*) '[ERR] HYMAP floodplain height map, ',trim(HYMAP_struc(n)%fldheightfile),&
                           ', not found.'
      write(LDT_logunit,*) 'Program stopping ...'
      call LDT_endrun

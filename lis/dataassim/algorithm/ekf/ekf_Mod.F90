@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -34,6 +36,7 @@ module ekf_Mod
   use LIS_fileIOMod
   use LIS_historyMod
   use LIS_timeMgrMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
   use netcdf
 #endif
@@ -86,9 +89,9 @@ module ekf_Mod
      logical          :: scale     ! scale yes/no?
      logical          :: getinnov  ! compute innovations? (.T. if assim==.T.)
      real             :: nodata    ! no-data-value
-     character(200)   :: path      ! path to measurements file 
+     character(len=LIS_CONST_PATH_LEN) :: path      ! path to measurements file 
      character(80)    :: name      ! name identifier for measurements 
-     character(200)   :: scalepath ! path to file with scaling parameters
+     character(len=LIS_CONST_PATH_LEN) :: scalepath ! path to file with scaling parameters
      character(80)    :: scalename ! filename for scaling parameters
      real             :: std       ! default obs error std
 
@@ -420,8 +423,7 @@ contains
                LIS_surface(n, LIS_rc%lsm_index)%tile(tileid)%col,&
                LIS_surface(n, LIS_rc%lsm_index)%tile(tileid)%row)
 
-          call LIS_mapTileSpaceToObsSpace(n, k, LIS_rc%lsm_index, &
-               tileid, st_id, en_id)
+          call LIS_lsm_DAmapTileSpaceToObsSpace(n, k, tileid, st_id, en_id)
 !          call getSelectedObsNumber(trim(LIS_rc%daset(k))//char(0),n,&
 !               LIS_surface(n,LIS_rc%lsm_index)%tile(tileid)%index,st_id,en_id)
 
@@ -555,7 +557,7 @@ contains
              stincrdata(t) = state_incr(v,t)
 !TBD: SVK
 #if 0 
-             call LIS_mapTileSpaceToObsSpace(n, k, LIS_rc%lsm_index, t, st_id, en_id)
+             call LIS_lsm_DAmapTileSpaceToObsSpace(n, k, t, st_id, en_id)
                          
              gid = st_id
 
@@ -818,7 +820,7 @@ end subroutine ekf_update
 !
 !EOP
     integer                :: ftn
-    character*100          :: innovfile, gainfile, incrfile
+    character(len=LIS_CONST_PATH_LEN) :: innovfile, gainfile, incrfile
     integer                :: shuffle, deflate, deflate_level
     integer                :: dimID(3), ares_Id, ninnov_Id, innov_id
     integer                :: forecast_sigma_id, aincr_Id
@@ -1091,7 +1093,7 @@ end subroutine ekf_update
 
     integer                :: ftn 
     integer                :: v
-    character*100          :: spreadfile
+    character(len=LIS_CONST_PATH_LEN) :: spreadfile
     integer                :: shuffle, deflate, deflate_level
     integer                :: dimID(3)
     integer                :: ensspread_id(LIS_rc%nstvars(k))
@@ -1233,7 +1235,7 @@ end subroutine ekf_update
 
     integer                :: ftn 
     integer                :: v
-    character*100          :: incrfile
+    character(len=LIS_CONST_PATH_LEN) :: incrfile
     integer                :: shuffle, deflate, deflate_level
     integer                :: dimID(3)
     integer                :: incr_id(LIS_rc%nstvars(k))

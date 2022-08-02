@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LIS_misc.h"
 !BOP
@@ -15,6 +21,7 @@ subroutine readNLDAS2runoffdata(n,surface_runoff, baseflow)
   use LIS_logMod
   use NLDAS2runoffdataMod
   use LIS_fileIOMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 #if ( defined USE_GRIBAPI)
   use grib_api
 #endif
@@ -51,7 +58,7 @@ subroutine readNLDAS2runoffdata(n,surface_runoff, baseflow)
   integer                       :: ftn
   integer, allocatable          :: pid(:),tid(:)
   integer                       :: qs_index, qsb_index
-  character*100                 :: filename
+  character(len=LIS_CONST_PATH_LEN) :: filename
   integer                       :: doy, yr, mo, da, hr, mn, ss, ts
   real*8                        :: time
   real                          :: gmt

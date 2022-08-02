@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module stg2_forcingMod
 
@@ -46,6 +52,8 @@ module stg2_forcingMod
 !  \end{description}
 !
 ! !USES: 
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
+
   implicit none
   PRIVATE
 !-----------------------------------------------------------------------------
@@ -64,7 +72,7 @@ module stg2_forcingMod
      real               :: ts
      integer            :: ncol                 ! Number of cols
      integer            :: nrow                 ! Number of rows
-     character*40       :: stg2dir              ! STAGE II Directory
+     character(len=LDT_CONST_PATH_LEN)       :: stg2dir              ! STAGE II Directory
      real*8             :: stg2time             ! Nearest hourly instance of incoming file
      real*8             :: griduptime1          ! Designated time of STAGEII grid change
      logical            :: gridchange1          ! Flag for when grid change occurs

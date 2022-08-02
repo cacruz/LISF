@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -23,6 +25,7 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
   use LIS_logMod,         only : LIS_logunit, LIS_verify, LIS_endrun
   use LIS_metforcingMod,  only : LIS_forc
   use AWRAL_forcingMod,    only : AWRAL_struc
+  use LIS_constantsMod,   only : LIS_CONST_PATH_LEN
 
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
   use netcdf
@@ -33,7 +36,6 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
   integer, intent(in)    :: order     ! lower(1) or upper(2) time interval bdry
   integer, intent(in)    :: n         ! nest
   integer, intent(in)    :: findex    ! forcing index
-  character(len=255)   :: fname          
   integer, intent(in) :: year,doy
   character(4) :: cyear
   integer             :: ferror_AWRAL
@@ -46,8 +48,6 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
 !  \begin{description}
 !  \item[n]
 !    index of the nest
-!  \item[fname]
-!    name of the AWRAL file : file naming convention is currently: AWRALdir/var_year.nc'
 !  \item[ferror\_AWRAL]
 !    flag to indicate success of the call (=0 indicates success)
 !  \item[filehr]
@@ -65,15 +65,15 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
   integer            :: ftn, ndata, index1,v
   integer, parameter :: N_AF = 6 ! # of AWRAL forcing variables
   character(10), dimension(N_AF), parameter :: awral_fv = (/  &
-       'tat',    &
-       'avpt',    &
-       'rgt',    &
-       'radcskyt',    &
-       'u2t',    &
-       'pt'     /)
+       'tat       ',    &
+       'avpt      ',    &
+       'rgt       ',    &
+       'radcskyt  ',    &
+       'u2t       ',    &
+       'pt        '     /)
 
 
-  character*255 :: var_fname
+  character(len=LIS_CONST_PATH_LEN) :: var_fname
   real,allocatable  :: datain(:,:) ! input data (lat,lon)
   logical            :: file_exists            
 ! netcdf variables
@@ -104,7 +104,7 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
     var_fname = trim(AWRAL_struc(n)%AWRALdir)//'/'//trim(awral_fv(v))//'_'//trim(cyear)//'.nc'
     inquire (file=trim(var_fname), exist=file_exists ) ! Check if file exists
      if (.not. file_exists)  then 
-       write(LIS_logunit,*)"[ERR] Missing AWRAL file: ", var_fname
+       write(LIS_logunit,*)"[ERR] Missing AWRAL file: ", trim(var_fname)
        ferror_AWRAL = 1
        return
     endif
@@ -114,7 +114,7 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
   timestep = doy
 
 !-- Check forcing is on the same grid as the model --!
-  if((AWRAL_struc(n)%ncol .neqv. LIS_rc%gnr(n)) .or. (AWRAL_struc(n)%ncol .neqv. LIS_rc%gnc(n))) then
+  if((AWRAL_struc(n)%nrow .ne. LIS_rc%gnr(n)) .or. (AWRAL_struc(n)%ncol .ne. LIS_rc%gnc(n))) then
      if(LIS_masterproc) then
           write(LIS_logunit,*)'[ERR] Problem using AWRAL forcing: Forcing must be on the same grid as the model'
           write(LIS_logunit,*)'[ERR] Remapping not implemented. Stopping...'
@@ -127,7 +127,7 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
     ndata = AWRAL_struc(n)%ncol * AWRAL_struc(n)%nrow
     datain = 0.0
     var_fname = trim(AWRAL_struc(n)%AWRALdir)//'/'//trim(awral_fv(v))//'_'//trim(cyear)//'.nc'
-    write(LIS_logunit,*)"[INFO] Attempting to read file: ", var_fname 
+    write(LIS_logunit,*)"[INFO] Attempting to read file: ", trim(var_fname)
     !-- netcdf reader --!
     ! Open netCDF file.
     status = nf90_open(var_fname, nf90_NoWrite, ncid)
@@ -135,13 +135,13 @@ subroutine read_AWRAL( order, n, findex, year, doy, ferror_AWRAL )
   
     if(status/=0) then
        if(LIS_masterproc) then
-            write(LIS_logunit,*)'[ERR] Problem opening file: ',var_fname,status
+            write(LIS_logunit,*)'[ERR] Problem opening file: ',trim(var_fname),status
             write(LIS_logunit,*)'[ERR]  Stopping...'
             call LIS_endrun
        endif
          call LIS_endrun
     else
-       if(LIS_masterproc) write(LIS_logunit,*)'[INFO] Opened file: ',var_fname
+       if(LIS_masterproc) write(LIS_logunit,*)'[INFO] Opened file: ',trim(var_fname)
     endif
 
     status = nf90_get_var(ncid, varid, datain, &

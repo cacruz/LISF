@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -16,6 +22,7 @@ subroutine readGLASSlaiObs(n)
   use ESMF
   use LDT_coreMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_DAobsDataMod
   use GLASSlai_obsMod
   use map_utils
@@ -35,7 +42,7 @@ subroutine readGLASSlaiObs(n)
   logical           :: alarmCheck
   logical           :: file_exists
   integer           :: c,r,i,j
-  character*100     :: fname
+  character(len=LDT_CONST_PATH_LEN)     :: fname
   real              :: laiobs(LDT_rc%lnc(n)*LDT_rc%lnr(n))
 
 !-----------------------------------------------------------------------
@@ -85,7 +92,7 @@ subroutine read_GLASSlai_data(n, fname, laiobs_ip)
   use GLASSlai_obsMod
 
   implicit none
-#if (defined USE_HDF4) 
+#if (defined USE_HDFEOS2)
 #include "hdf.f90"
 #endif
 !
@@ -114,7 +121,7 @@ subroutine read_GLASSlai_data(n, fname, laiobs_ip)
 !
 !EOP
 
-#if (defined USE_HDF4)
+#if (defined USE_HDFEOS2)
   integer,  parameter     :: nc=7200, nr=3600
   integer                 :: gdopen,gdattach,gdrdfld
   integer                 :: gddetach,gdclose

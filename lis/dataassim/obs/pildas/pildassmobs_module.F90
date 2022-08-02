@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -22,6 +24,7 @@ module pildassmobs_module
 ! !USES: 
   use ESMF
   use map_utils
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
 
   implicit none
@@ -80,7 +83,6 @@ contains
 ! !INTERFACE: 
   subroutine pildassmobs_setup(k, OBS_State, OBS_Pert_State)
 ! !USES: 
-    use ESMF
     use LIS_coreMod
     use LIS_logMod
     use LIS_historyMod
@@ -116,7 +118,7 @@ contains
     type(ESMF_ArraySpec)   ::  intarrspec, realarrspec
     type(ESMF_Field)       ::  pertField(LIS_rc%nnest)
     type(ESMF_ArraySpec)   ::  pertArrSpec
-    character*100          ::  pildassmobsdir
+    character(len=LIS_CONST_PATH_LEN) ::  pildassmobsdir
     character*100          ::  temp
     real,  allocatable         ::  obsstd(:)
     character*1            ::  vid(2)
@@ -128,8 +130,8 @@ contains
     real, pointer          ::  obs_temp(:,:)
     real, allocatable          :: xrange(:), cdf(:)
     real                   :: gridDesci(50)
-    character*100          :: modelcdffile(LIS_rc%nnest)
-    character*100          :: obscdffile(LIS_rc%nnest)
+    character(len=LIS_CONST_PATH_LEN) :: modelcdffile(LIS_rc%nnest)
+    character(len=LIS_CONST_PATH_LEN) :: obscdffile(LIS_rc%nnest)
     real, allocatable          ::  ssdev(:)
 
     allocate(pildas_sm_struc(LIS_rc%nnest))

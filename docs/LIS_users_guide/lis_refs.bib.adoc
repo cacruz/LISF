@@ -1,11 +1,12 @@
-[appendix]
+
+[bibliography]
 == References
 
 - [[[sheffield_etal_2006]]] J. Sheffield, G. Goteti, and E. F. Wood.  Development of a 50-yr high-resolution global dataset of meteorological forcings for land surface modeling.  _Journal of Climate_, 13:3088{endash}3111, 2006.
 
 - [[[berg_etal_jgr_2003]]] A. A. Berg, J. S. Famiglietti, J. P.  Walker, and P. R. Houser.  Impact of bias correction to reanalysis products on simulations of North American soil moisture and hydrological fluxes.  _Journal of Geophysical Research_, 4490, 2003.
 
-- [[[protex]]] W. Sawyer and A. da Silva.  ProTeX: A sample Fortran 90 source code documentation system.  Technical report, NASA GMAO, 1997.  DAO Office Note 97-11.
+//- [[[protex]]] W. Sawyer and A. da Silva.  ProTeX: A sample Fortran 90 source code documentation system.  Technical report, NASA GMAO, 1997.  DAO Office Note 97-11.
 
 //
 //@Article{sheffield_etal_2006,
@@ -125,5 +126,4 @@
 //  title = 	 {\textsc{VIC}},
 //  note = 	 {http://hydrology.princeton.edu/research/lis/index.html}
 //}
-//
 

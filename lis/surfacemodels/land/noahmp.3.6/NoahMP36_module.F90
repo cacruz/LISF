@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -587,12 +589,21 @@ module NoahMP36_module
      real               :: chb2
      real               :: fpice
      real               :: sfcheadrt
+<<<<<<< HEAD
      real               :: xice
      real               :: snowf
      real               :: chs2
      real               :: cqs2
      real               :: q2sat
      real               :: z
+||||||| merged common ancestors
+=======
+     !Added by Chandana Gangodagamage
+     real :: sfchead1rt
+     real :: infxs1rt
+     real :: soldrain1rt
+
+>>>>>>> support/lisf-public-7.4
      !-------------------------------------------------------------------------
      ! read in from ARS sm data files ! SY
      !-------------------------------------------------------------------------

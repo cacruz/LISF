@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -21,6 +23,7 @@ subroutine write_SMAPsmobs(Obj_Space)
        LIS_getNextUnitNumber, LIS_releaseUnitNumber
   use LIS_fileIOMod,      only : LIS_create_output_directory
   use LIS_historyMod,     only : LIS_writevar_gridded
+  use LIS_constantsMod,   only : LIS_CONST_PATH_LEN
 
   implicit none
 ! !ARGUMENTS: 
@@ -40,7 +43,7 @@ subroutine write_SMAPsmobs(Obj_Space)
   real,    pointer    :: obsl(:)
   type(ESMF_Field)    :: smcField
   logical             :: data_update
-  character*100       :: obsname
+  character(len=LIS_CONST_PATH_LEN) :: obsname
   integer             :: status
   integer             :: ftn
   integer             :: n 

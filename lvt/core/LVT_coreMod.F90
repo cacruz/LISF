@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
+!
+! Copyright (c) 2022 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LVT_misc.h"
 !BOP
 ! 
@@ -497,7 +503,7 @@ contains
                    LVT_rc%monthCount = 0 
                 endif
              endif
-          elseif(mod(LVT_rc%tavgInterval,7776000).eq.0)then !3 monthly 
+          elseif(mod(LVT_rc%tavgInterval,7776000).eq.0)then !3 monthly
              if(LVT_rc%mo.ne.LVT_rc%prev_mo_tavg) then 
                 LVT_rc%prev_mo_tavg = LVT_rc%mo
                 LVT_rc%monthCount = LVT_rc%monthCount + 1

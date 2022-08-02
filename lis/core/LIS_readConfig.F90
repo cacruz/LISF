@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.4
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2022 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -36,6 +38,7 @@ subroutine LIS_readConfig()
                               LIS_localPet, LIS_npes, LIS_masterproc
   use LIS_histDataMod, only : LIS_histData
   use LIS_timeMgrMod,  only : LIS_date2time, LIS_parseTimeString
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use LIS_logMod
   use LIS_mpiMod, only: LIS_mpi_comm ! EMK
 !
@@ -64,8 +67,8 @@ subroutine LIS_readConfig()
   character*10   :: time
   integer        :: ios
   integer        :: final_dirpos
-  character(100) :: diag_fname
-  character(100) :: diag_dir
+  character(len=LIS_CONST_PATH_LEN) :: diag_fname
+  character(len=LIS_CONST_PATH_LEN) :: diag_dir
   integer :: ierr ! EMK
   integer, external  :: LIS_create_subdirs
 ! ______________________________________________________________
@@ -106,7 +109,7 @@ subroutine LIS_readConfig()
        if (ios .ne. 0) then
           write(LIS_logunit,*)'[ERR] Problem creating directory ', &
                trim(diag_dir)
-          call LIS_flush(LIS_logunit)
+          flush(LIS_logunit)
        end if
     end if
   endif
@@ -465,7 +468,7 @@ subroutine LIS_readConfig()
        rc=rc)
   call LIS_verify(rc,'Output naming style: not defined')
   call ESMF_ConfigGetAttribute(LIS_config,LIS_rc%sout,&
-       label="Enable output statistics:",default=.true.,&
+       label="Enable output statistics:",default=.false.,&
        rc=rc)
 
   if (LIS_rc%wout.eq."grib1" .or. LIS_rc%wout.eq."grib2") then
