@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -26,6 +28,7 @@ subroutine read_LPRM_AMSREsm(n, k, OBS_State, OBS_Pert_State)
   use LIS_DAobservationsMod
   use map_utils
   use LIS_pluginIndices
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use LPRM_AMSREsm_Mod, only : LPRM_AMSREsm_struc
 
   implicit none
@@ -56,8 +59,7 @@ subroutine read_LPRM_AMSREsm(n, k, OBS_State, OBS_Pert_State)
   real                   :: MAX_SM_VALUE, MIN_SM_VALUE
   integer                :: status
   integer                :: grid_index
-  character*100          :: smobsdir
-  character*100          :: fname_A, fname_D
+  character(len=LIS_CONST_PATH_LEN) :: smobsdir, fname_A, fname_D
   logical                :: alarmCheck, file_exists
   integer                :: t,c,r,i,j,p,jj
   real,          pointer :: obsl(:)

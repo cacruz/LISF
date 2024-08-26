@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -296,7 +302,7 @@ subroutine retrieve_inst_ecmwfvars(n, findex, instfile, glbdata, fret)
      enddo
      fret = 0 
   else
-     write(LDT_logunit,*) 'ERR: Could not find file (I): ',instfile   
+     write(LDT_logunit,*) 'ERR: Could not find file (I): ',trim(instfile)
      fret = -1
   endif
 #endif
@@ -546,7 +552,7 @@ subroutine retrieve_accum_ecmwfvars(n, findex, avgfile1, avgfile2, glbdata1, &
         enddo
         fret = 0 
      else
-        write(LDT_logunit,*) 'ERR: Could not find file (A1): ',avgfile1   
+        write(LDT_logunit,*) 'ERR: Could not find file (A1): ',trim(avgfile1)
         fret = -1
      endif
      

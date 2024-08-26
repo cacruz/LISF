@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -143,6 +145,24 @@ contains
        write(LIS_logunit,*) "[INFO]and irrigation withdrawn from GW:  ",&
                              LIS_rc%irrigation_GWabstraction
 
+!------Wanshu----irrigation scheduling based on DVEG On--------
+     LIS_rc%irrigation_dveg  = 0 ! Default is no
+     call ESMF_ConfigGetAttribute(LIS_config,LIS_rc%irrigation_dveg,&
+            label="Irrigation scheduling based on dynamic vegetation:",default=0,rc=rc)
+       call LIS_verify(rc,"Irrigation scheduling based on dynamic vegetation: not defined")
+       write(LIS_logunit,*) "[INFO] Irrigation scheduling based on dynamic vegetation:  ",&
+                             LIS_rc%irrigation_dveg
+!------------------------------------------------------
+
+!------Wanshu---GW abstraction based on irrigation groundwater ratio data--------
+     LIS_rc%irrigation_SourcePartition  = 0 ! Default is no
+     call ESMF_ConfigGetAttribute(LIS_config,LIS_rc%irrigation_SourcePartition,&
+            label="Irrigation source water partition:",default=0,rc=rc)
+       call LIS_verify(rc,"Irrigation source water partition: not defined")
+       write(LIS_logunit,*) "[INFO] Irrigation source water partition:  ",&
+                             LIS_rc%irrigation_SourcePartition
+!------------------------------------------------------
+
      ! Register irrigation output interval:
        do n=1,LIS_rc%nnest
           call LIS_parseTimeString(time,LIS_irrig_struc(n)%outInterval)
@@ -219,6 +239,7 @@ contains
     use LIS_fileIOMod,  only : LIS_create_output_directory, &
          LIS_create_output_filename,  &
          LIS_create_stats_filename
+    use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
 ! !ARGUMENTS: 
     integer, intent(in)   :: n 
@@ -234,7 +255,7 @@ contains
 !EOP
     
     logical           :: alarmCheck,open_stats
-    character*100     :: outfile, statsfile
+    character(len=LIS_CONST_PATH_LEN) :: outfile, statsfile
 
     if(LIS_rc%irrigation_type.ne."none") then 
        alarmCheck = LIS_isAlarmRinging(LIS_rc,&
@@ -244,14 +265,16 @@ contains
           if(LIS_rc%wopt.ne."none") then 
              if(LIS_masterproc) then 
                 call LIS_create_output_directory('IRRIGATION')
-                call LIS_create_output_filename(n,outfile,&
-                     model_name ="IRRIGATION")
-                if(LIS_irrig_struc(n)%stats_file_open) then 
+                if (LIS_irrig_struc(n)%stats_file_open) then
                    call LIS_create_stats_filename(n,statsfile,"IRRIGATION")
-                   LIS_irrig_struc(n)%stats_file_open = .false. 
-                   open_stats = .true. 
+                   LIS_irrig_struc(n)%stats_file_open = .false.
+                   open_stats = .true.
                 endif
              endif
+
+             call LIS_create_output_filename(n,outfile,&
+                  model_name ="IRRIGATION")
+
              call LIS_writeModelOutput(n,outfile,statsfile,              &
                   open_stats,outInterval=LIS_irrig_struc(n)%outInterval, &
                   nsoillayers=1, lyrthk = (/1.0/),                       &

@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.1
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -214,9 +216,7 @@ subroutine noahmp36_getirrigationstates(n,irrigState)
 
    ! If we are outside of the irrigation window, set rate to 0
      if ((ltime.gt.shift_otimee).or.(ltime.lt.shift_otimes)) then
-       irrigRate(t) = 0.0
-       write(LIS_logunit,*) '[INFO] ',ltime, &
-            'is outside the irrigation window'     
+       irrigRate(t) = 0.0    
      endif
 
 ! Calculate vegetation and root depth parameters

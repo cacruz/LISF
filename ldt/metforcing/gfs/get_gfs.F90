@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -18,6 +24,7 @@ subroutine get_gfs(n,findex)
   use LDT_metforcingMod, only : LDT_forc
   use LDT_timeMgrMod,    only : LDT_tick, LDT_get_nstep
   use LDT_logMod,        only : LDT_logunit, LDT_endrun
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use gfs_forcingMod,    only : gfs_struc
 
   implicit none
@@ -79,7 +86,7 @@ subroutine get_gfs(n,findex)
   real*8  :: timenow, time1, time2
   real*8  :: dumbtime1, dumbtime2
   real    :: gmt1, gmt2,ts1,ts2
-  character(len=80) :: name00, name03, name06
+  character(len=LDT_CONST_PATH_LEN) :: name00, name03, name06
   logical :: file_exists, file_exists1, file_exists2
   integer :: option
   real :: gridDesci(20)
@@ -434,10 +441,10 @@ subroutine get_gfs(n,findex)
         endif
                
         if(status.eq.0) then 
-           write(LDT_logunit,*) 'Reading GFS file1 (I) ',name00
-           write(LDT_logunit,*) 'Reading GFS file1 (A) ',name03
+           write(LDT_logunit,*) 'Reading GFS file1 (I) ',trim(name00)
+           write(LDT_logunit,*) 'Reading GFS file1 (A) ',trim(name03)
            if(F06flag) then 
-              write(LDT_logunit,*) 'Reading GFS file1 (A)',name06
+              write(LDT_logunit,*) 'Reading GFS file1 (A)',trim(name06)
            endif
            call read_gfs( order, n, name00, name03, name06, F06flag, ferror, try)
            if ( ferror == 1 ) then  
@@ -506,14 +513,14 @@ subroutine get_gfs(n,findex)
         
         if(file_exists1.and.file_exists2) then 
            status = 0 
-           write(LDT_logunit,*) 'Reading GFS file2 (I) ',name00
-           write(LDT_logunit,*) 'Reading GFS file2 (A) ',name03
+           write(LDT_logunit,*) 'Reading GFS file2 (I) ',trim(name00)
+           write(LDT_logunit,*) 'Reading GFS file2 (A) ',trim(name03)
         else
            status = 1
         endif
 
         if(F06flag) then 
-           write(LDT_logunit,*) 'Reading GFS file2 (A)',name06
+           write(LDT_logunit,*) 'Reading GFS file2 (A)',trim(name06)
         endif       
         call read_gfs( order, n, name00, name03, name06, F06flag, ferror, try)    
         if ( ferror == 1 ) then  

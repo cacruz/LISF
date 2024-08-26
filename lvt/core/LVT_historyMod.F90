@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LVT_misc.h"
 #include "LVT_NetCDF_inc.h"
 !BOP
@@ -589,6 +595,7 @@ contains
           endif
 
        elseif(LVT_rc%lvt_wopt.eq."2d gridspace") then 
+
           ! The following are the 3-d fields
           if(vlevels.gt.1) then 
              call LVT_verify(nf90_def_dim(ftn,trim(short_name)//'_profiles',&
@@ -606,7 +613,6 @@ contains
                 dimID_t(1) = dimID(1)
                 dimID_t(2) = dimID(2)
                 dimID_t(3) = dimID(5)
-
                 call LVT_verify(nf90_def_var(ftn,trim(short_name),nf90_float,&
                      dimids = dimID_t(1:3), varID=varId))
 #if(defined USE_NETCDF4) 
@@ -619,7 +625,6 @@ contains
                 dimID_t(1) = dimID(1)
                 dimID_t(2) = dimID(2)
                 dimID_t(3) = dimID(4)
-                
                 call LVT_verify(nf90_def_var(ftn,trim(short_name),nf90_float,&
                      dimids = dimID_t(1:3), varID=varId),&
                      'nf90_def_var failed in LVT_historyMod')

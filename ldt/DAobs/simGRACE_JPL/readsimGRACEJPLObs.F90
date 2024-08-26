@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -17,6 +23,7 @@ subroutine readsimGRACEJPLObs(n)
   use ESMF
   use LDT_coreMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_historyMod
   use LDT_DAobsDataMod
   use LDT_timeMgrMod
@@ -37,7 +44,7 @@ subroutine readsimGRACEJPLObs(n)
 !
 !  TWS outputs from LIS is expected to be in mm
 !EOP 
-  character*100         :: fname,filename
+  character(len=LDT_CONST_PATH_LEN)         :: fname,filename
   integer               :: c,r,k,kk,t,iret
   integer               :: ftn
   integer               :: refyr,refmo,refda,refhr,refmn,refss

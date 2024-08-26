@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -16,6 +18,7 @@ subroutine NLDAS_routing_output(n)
   use LIS_historyMod,   only : LIS_writeModelOutput
   use LIS_fileIOMod,   only : LIS_create_output_directory, & 
        LIS_create_stats_filename, LIS_create_output_filename
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use NLDAS_routingMod, only : NLDAS_routing_struc
 
   implicit none
@@ -24,7 +27,7 @@ subroutine NLDAS_routing_output(n)
   
   character(len=12)     :: cdate1
   integer               :: iret
-  character*100         :: filename
+  character(len=LIS_CONST_PATH_LEN) :: filename
   character*100         :: name
   integer               :: ftn
   integer               :: mo, da
@@ -70,9 +73,6 @@ subroutine NLDAS_routing_output(n)
            if(LIS_masterproc) then 
               NLDAS_routing_struc(n)%numout=NLDAS_routing_struc(n)%numout+1    
               call LIS_create_output_directory('ROUTING')
-              call LIS_create_output_filename(n, filename, &
-                   model_name='ROUTING', &
-                   writeint=NLDAS_routing_struc(n)%outInterval)
 
 !-----------------------------------------------------------------------
 ! Open statistical output file
@@ -83,7 +83,11 @@ subroutine NLDAS_routing_output(n)
                  open_stats = .true.
               endif
            endif
-     
+
+           call LIS_create_output_filename(n, filename, &
+                model_name='ROUTING', &
+                writeint=NLDAS_routing_struc(n)%outInterval)
+
 !-----------------------------------------------------------------------
 ! Write Output 
 !-----------------------------------------------------------------------

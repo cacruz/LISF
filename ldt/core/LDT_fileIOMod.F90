@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_fileIOMod
@@ -18,6 +24,7 @@ module LDT_fileIOMod
 ! 
 ! !USES: 
   use LDT_coreMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none 
   PRIVATE
@@ -325,9 +332,9 @@ subroutine LDT_create_output_filename(n, fname, model_name, odir, writeint)
    character*1             :: fres1(10)
    character(len=1)        :: fproj
    integer                 :: curr_mo = 0
-   character(len=200)       :: dname
-   character(len=200), save :: out_fname
-   character(len=100)       :: odir_temp
+   character(len=LDT_CONST_PATH_LEN)       :: dname
+   character(len=LDT_CONST_PATH_LEN), save :: out_fname
+   character(len=LDT_CONST_PATH_LEN)       :: odir_temp
    integer                  :: i, c
 
    if ( present(odir) ) then
@@ -451,7 +458,7 @@ subroutine LDT_create_output_filename(n, fname, model_name, odir, writeint)
       
       write(unit=cdate, fmt='(i2.2, i2.2)') LDT_rc%hr, LDT_rc%mn
       
-      if(LDT_rc%lis_map_proj.eq."polar") then 
+      if(LDT_rc%lis_map_proj(n).eq."polar") then 
          fproj = 'P'
          write(LDT_logunit,*) "[INFO] fres ",LDT_rc%gridDesc(n, 9)
          if (LDT_rc%gridDesc(n, 9) .ge. 10.) then
@@ -460,7 +467,7 @@ subroutine LDT_create_output_filename(n, fname, model_name, odir, writeint)
             write(unit=fres, fmt='(i1)') nint(LDT_rc%gridDesc(n, 9))
          endif
          fres2 = trim(fres)//'KM'
-      elseif(LDT_rc%lis_map_proj.eq."lambert") then 
+      elseif(LDT_rc%lis_map_proj(n).eq."lambert") then 
          fproj = 'L'
          write(LDT_logunit,*)"[INFO] fres ",LDT_rc%gridDesc(n, 9)
 !         write(unit=fres, fmt='(f2.0)') LDT_rc%gridDesc(n, 9)
@@ -471,11 +478,11 @@ subroutine LDT_create_output_filename(n, fname, model_name, odir, writeint)
             write(unit=fres, fmt='(i1)') nint(LDT_rc%gridDesc(n, 9))
          endif
          fres2 = trim(fres)//'KM'
-      elseif(LDT_rc%lis_map_proj.eq."mercator") then 
+      elseif(LDT_rc%lis_map_proj(n).eq."mercator") then 
          fproj = 'M'
          write(unit=fres, fmt='(i2.2)') LDT_rc%gridDesc(n, 9)
          fres = trim(fres)//'KM'
-      elseif(LDT_rc%lis_map_proj.eq."gaussian") then 
+      elseif(LDT_rc%lis_map_proj(n).eq."gaussian") then 
          fproj = 'G'
          write(unit=fres, fmt='(i2.2)') LDT_rc%gridDesc(n, 9)*100        
          fres = '0P'//trim(fres)//'DEG'
@@ -718,7 +725,64 @@ subroutine LDT_create_daobs_filename(n, fname)
         domain_info(i,11) = 64
         domain_info(i,20) = 64
       enddo
-      
+
+! -- Added Lambert parameter domain (KRA)
+
+    case ( "lambert" )
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" lower left lat:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,4),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' lower left lat:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" lower left lon:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,5),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' lower left lon:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" true lat1:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,10),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' true lat1:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" true lat2:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,7),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' true lat2:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" standard lon:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,11),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' standard lon:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" resolution:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,8),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' resolution:')
+         domain_info(i,9) = domain_info(i,8)   ! set dx = dy for now
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" x-dimension size:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,2),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' x-dimension size:')
+      enddo
+
+      call ESMF_ConfigFindLabel(LDT_config,trim(segment_name)//" y-dimension size:",rc=rc)
+      do i=1,LDT_rc%nnest
+         call ESMF_ConfigGetAttribute(LDT_config,domain_info(i,3),rc=rc)
+         call LDT_verify(rc,'please specify '//trim(segment_name)//' y-dimension size:')
+      enddo
+
+      do i=1,LDT_rc%nnest
+         domain_info(i,6) = 8.0
+      enddo
+
 ! ---
     case ( "gaussian" )  
 
@@ -925,8 +989,8 @@ subroutine LDT_create_daobs_filename(n, fname)
 ! !INTERFACE: 
 !
  subroutine LDT_transform_paramgrid(n, gridtransform_opt, param_gridDesc, &
-                          numinpts, numtiles, array_in, li,               &
-                          numoutpts, array_out, lo )
+      numinpts, numtiles, array_in, li,               &
+      numoutpts, array_out, lo )
 !
 ! !USES: 
    use LDT_coreMod,  only : LDT_rc, LDT_domain, LDT_localPet

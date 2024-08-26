@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.1
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -16,6 +18,7 @@
 ! 19 Jan 2016: Augusto Getirana;  Inclusion of four Local Inertia variables
 ! 10 Mar 2019: Sujay Kumar;       Added support for NetCDF and parallel 
 !                                 processing. 
+! 27 Apr 2020: Augusto Getirana;  Added support for urban drainage
 !  
 ! !INTERFACE: 
 subroutine HYMAP2_routing_readrst
@@ -25,6 +28,7 @@ subroutine HYMAP2_routing_readrst
   use LIS_coreMod
   use LIS_logMod
   use LIS_timeMgrMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use HYMAP2_routingMod, only : HYMAP2_routing_struc
 
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
@@ -42,7 +46,7 @@ subroutine HYMAP2_routing_readrst
   integer       :: ftn
   integer       :: i,j,k
   integer       :: ios,status
-  character*100 :: filename
+  character(len=LIS_CONST_PATH_LEN) :: filename
   logical       :: read_restart
   integer           :: yr,mo,da,hr,mn,ss,doy
   real*8            :: time
@@ -87,7 +91,7 @@ subroutine HYMAP2_routing_readrst
      endif
      
      if(read_restart) then 
-        write(LIS_logunit,*) 'HYMAP2 restart file used: ', &
+        write(LIS_logunit,*) '[INFO] HYMAP2 restart file used: ', &
              trim(HYMAP2_routing_struc(n)%rstfile)
 
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
@@ -96,40 +100,93 @@ subroutine HYMAP2_routing_readrst
         call LIS_verify(status, "Error opening file "//&
              trim(HYMAP2_routing_struc(n)%rstfile))
 #endif
-        call HYMAP2_readvar_restart(ftn,n,&
-             HYMAP2_routing_struc(n)%rivsto,&
-             "RIVSTO")
-        call HYMAP2_readvar_restart(ftn,n,&
-             HYMAP2_routing_struc(n)%fldsto,&
-             "FLDSTO")
-        call HYMAP2_readvar_restart(ftn,n,&
-             HYMAP2_routing_struc(n)%rnfsto,&
-             "RNFSTO")
-        call HYMAP2_readvar_restart(ftn,n,&
-             HYMAP2_routing_struc(n)%bsfsto,&
-             "BSFSTO")
-
-        if(HYMAP2_routing_struc(n)%flowtype==3)then
+        if(HYMAP2_routing_struc(n)%useens.eq.0) then 
            call HYMAP2_readvar_restart(ftn,n,&
-                HYMAP2_routing_struc(n)%rivout_pre,&
-                "RIVOUT_PRE")
+                HYMAP2_routing_struc(n)%rivsto,&
+                "RIVSTO")
            call HYMAP2_readvar_restart(ftn,n,&
-                HYMAP2_routing_struc(n)%rivdph_pre,&
-                "RIVDPH_PRE")
+                HYMAP2_routing_struc(n)%fldsto,&
+                "FLDSTO")
            call HYMAP2_readvar_restart(ftn,n,&
-                HYMAP2_routing_struc(n)%fldout_pre,&
-                "FLDOUT_PRE")
+                HYMAP2_routing_struc(n)%rnfsto,&
+                "RNFSTO")
            call HYMAP2_readvar_restart(ftn,n,&
-                HYMAP2_routing_struc(n)%flddph_pre,&
-                "FLDDPH_PRE")
+                HYMAP2_routing_struc(n)%bsfsto,&
+                "BSFSTO")
+           !ag(13Jan2021)
+           !write out variables below if flowtype is not kinematic wave
+           if(HYMAP2_routing_struc(n)%flowtype/=1)then
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%rivout_pre,&
+                   "RIVOUT_PRE")
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%rivdph_pre,&
+                   "RIVDPH_PRE")
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%fldout_pre,&
+                   "FLDOUT_PRE")
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%flddph_pre,&
+                   "FLDDPH_PRE")
+           endif
+           !ag (27Apr2020)
+           !urban drainage storage  
+           if(HYMAP2_routing_struc(n)%flowtype==4)then
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%drsto,&
+                   "DRSTO")
+              call HYMAP2_readvar_restart(ftn,n,&
+                   HYMAP2_routing_struc(n)%drout,&
+                   "DROUT")
+           endif
+        else
+           call HYMAP2_readvar_restart_ens(ftn,n,&
+                HYMAP2_routing_struc(n)%rivsto,&
+                "RIVSTO")
+           call HYMAP2_readvar_restart_ens(ftn,n,&
+                HYMAP2_routing_struc(n)%fldsto,&
+                "FLDSTO")
+           call HYMAP2_readvar_restart_ens(ftn,n,&
+                HYMAP2_routing_struc(n)%rnfsto,&
+                "RNFSTO")
+           call HYMAP2_readvar_restart_ens(ftn,n,&
+                HYMAP2_routing_struc(n)%bsfsto,&
+                "BSFSTO")
+           !ag(13Jan2021)
+           !write out variables below if flowtype is not kinematic wave
+           if(HYMAP2_routing_struc(n)%flowtype/=1)then
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%rivout_pre,&
+                   "RIVOUT_PRE")
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%rivdph_pre,&
+                   "RIVDPH_PRE")
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%fldout_pre,&
+                   "FLDOUT_PRE")
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%flddph_pre,&
+                   "FLDDPH_PRE")
+           endif
+           !ag (27Apr2020)
+           !urban drainage storage  
+           if(HYMAP2_routing_struc(n)%flowtype==4)then
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%drsto,&
+                   "DRSTO")
+              call HYMAP2_readvar_restart_ens(ftn,n,&
+                   HYMAP2_routing_struc(n)%drout,&
+                   "DROUT")
+           endif
         endif
+
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
         status = nf90_close(ftn)
         call LIS_verify(status, "Error in nf90_close in HYMAP2_routing_readrst")
 #endif
      endif
   enddo
-
+!stop
 end subroutine HYMAP2_routing_readrst
 
 !BOP
@@ -150,7 +207,7 @@ end subroutine HYMAP2_routing_readrst
 ! !ARGUMENTS: 
     integer, intent(in)   :: ftn
     integer, intent(in)   :: n
-    real, intent(inout)   :: var(HYMAP2_routing_struc(n)%nseqall)
+    real, intent(inout)   :: var(LIS_rc%nroutinggrid(n))
     character(len=*)      :: varname
     
 ! !DESCRIPTION:
@@ -171,7 +228,7 @@ end subroutine HYMAP2_routing_readrst
     integer           :: i,ix,iy,ix1,iy1
     integer           :: status
 
-    allocate(gtmp(HYMAP2_routing_struc(n)%nseqall_glb))
+    allocate(gtmp(LIS_rc%glbnroutinggrid(n)))
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
     status = nf90_inq_varid(ftn,trim(varname),varid)
     call LIS_verify(status,'Error in nf90_inq_varid in HYMAP2_readvar_restart')
@@ -179,7 +236,7 @@ end subroutine HYMAP2_routing_readrst
     call LIS_verify(status,'Error in nf90_get_var in HYMAP2_readvar_restart')
 #endif       
 
-    do i=1,HYMAP2_routing_struc(n)%nseqall
+    do i=1,LIS_rc%nroutinggrid(n)
        ix = HYMAP2_routing_struc(n)%seqx(i)
        iy = HYMAP2_routing_struc(n)%seqy(i)
        ix1 = ix + LIS_ews_halo_ind(n,LIS_localPet+1) -1
@@ -189,3 +246,66 @@ end subroutine HYMAP2_routing_readrst
      
     deallocate(gtmp)   
   end subroutine HYMAP2_readvar_restart
+
+
+!BOP
+! !ROUTINE: HYMAP2_readvar_restart_ens
+! \label{HYMAP2_readvar_restart_ens}
+! 
+! !INTERFACE:
+  subroutine HYMAP2_readvar_restart_ens(ftn, n, var, varname)
+! !USES:
+    use LIS_coreMod
+    use LIS_logMod
+    use HYMAP2_routingMod
+#if (defined USE_NETCDF3 || defined USE_NETCDF4)
+  use netcdf
+#endif
+
+    implicit none
+! !ARGUMENTS: 
+    integer, intent(in)   :: ftn
+    integer, intent(in)   :: n
+    real, intent(inout)   :: var(LIS_rc%nroutinggrid(n),&
+         LIS_rc%nensem(n))
+    character(len=*)      :: varname
+    
+! !DESCRIPTION:
+!  Reads a real variable from a NetCDF restart file. 
+!
+!  The arguments are: 
+!  \begin{description}
+!   \item [n]
+!     index of the domain or nest.
+!   \item [ftn]
+!     unit number of the binary output file
+!   \item [var]
+!     variables being written, dimensioned in the tile space
+!  \end{description}
+!EOP
+    real, allocatable :: gtmp(:)
+    integer           :: varid
+    integer           :: i,m,ix,iy,ix1,iy1
+    integer           :: status
+
+    allocate(gtmp(LIS_rc%glbnroutinggrid(n)*LIS_rc%nensem(n)))
+#if (defined USE_NETCDF3 || defined USE_NETCDF4)
+    status = nf90_inq_varid(ftn,trim(varname),varid)
+    call LIS_verify(status,'Error in nf90_inq_varid in HYMAP2_readvar_restart_ens')
+    status = nf90_get_var(ftn,varid,gtmp)
+    call LIS_verify(status,'Error in nf90_get_var in HYMAP2_readvar_restart_ens')
+#endif       
+    do i=1,LIS_rc%nroutinggrid(n)
+       do m=1,LIS_rc%nensem(n)
+          ix = HYMAP2_routing_struc(n)%seqx(i)
+          iy = HYMAP2_routing_struc(n)%seqy(i)
+          ix1 = ix + LIS_ews_halo_ind(n,LIS_localPet+1) -1
+          iy1 = iy + LIS_nss_halo_ind(n,LIS_localPet+1) -1
+
+          var(i,m)  = gtmp(m + &
+               (HYMAP2_routing_struc(n)%sindex(ix1,iy1)-1)*LIS_rc%nensem(n))
+
+       enddo
+    enddo
+    deallocate(gtmp)   
+  end subroutine HYMAP2_readvar_restart_ens

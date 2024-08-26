@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -19,6 +25,7 @@ subroutine readSMOSL2smObs(n)
   use LDT_coreMod,      only : LDT_rc
   use LDT_timeMgrMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_DAobsDataMod
   use SMOSL2sm_obsMod, only : SMOSL2smobs
   use map_utils
@@ -91,8 +98,8 @@ subroutine readSMOSL2smObs(n)
   logical                 :: alarmCheck
   logical                 :: file_exists
   integer                 :: c,r,i,j
-  character*100           :: fname
-  character*100           :: smos_filename
+  character(len=LDT_CONST_PATH_LEN)           :: fname
+  character(len=LDT_CONST_PATH_LEN)           :: smos_filename
   character*8             :: yyyymmdd
   character*200           :: list_files
   integer                 :: sind

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -94,6 +100,11 @@ subroutine read_maskfile(n, vegtype, fgrd, localmask )
       call LDT_endrun
    endif
 
+   if(LDT_rc%mask_source(n) =="MCD12Q1") then
+      call read_maskfile_MCD12Q1(n,vegtype, fgrd, localmask)
+      return
+   endif
+   
 ! -------------------------------------------------------------------
 !    PREPARE SUBSETTED PARAMETER GRID FOR READING IN NEEDED DATA
 ! -------------------------------------------------------------------
@@ -105,7 +116,7 @@ subroutine read_maskfile(n, vegtype, fgrd, localmask )
                           subparam_gridDesc, lat_line, lon_line )
 
 !- Check parameter resolution against run domain:
-   if( (subparam_gridDesc(9)-(LDT_rc%gridDesc(n,9)/LDT_rc%lis_map_resfactor))>0.001 ) then
+   if( (subparam_gridDesc(9)-(LDT_rc%gridDesc(n,9)/LDT_rc%lis_map_resfactor(n)))>0.001 ) then
      if( LDT_rc%mask_gridtransform(n) == "none" ) then
        write(LDT_logunit,*) "[ERR] The landmask file resolution is set as less than"
        write(LDT_logunit,*) "  the LIS run domain resolution, but NO upscaling method selected."

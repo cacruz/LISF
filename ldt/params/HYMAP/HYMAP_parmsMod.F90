@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module HYMAP_parmsMod
@@ -16,12 +22,15 @@ module HYMAP_parmsMod
 !  29 Mar 2013: Sujay Kumar; Initial implementation
 !   2 Dec 2015: Augusto Getirana: Included drainage area and basin maps
 !   1 Nov 2017: Augusto Getirana: Included flow type maps, baseflow and surface runoff dwi maps
+!   9 Jun 2020: Yeosang Yoon: Support flexible grid setting (dx~=dy)
+!  24 Aug 2021: Hiroko Beaudoing: Fix boundary for global domain
 !
   use ESMF
   use LDT_coreMod
   use LDT_historyMod
   use LDT_paramDataMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
 
@@ -45,27 +54,27 @@ module HYMAP_parmsMod
 
      integer       :: bfdwicode, rundwicode, rivflocode
 
-     character*100 :: riverwidthfile
-     character*100 :: riverheightfile
-     character*100 :: riverlengthfile
-     character*100 :: riverzfile
-     character*100 :: fldheightfile
-     character*100 :: fldzfile
-     character*100 :: flowdirxfile
-     character*100 :: flowdiryfile
-     character*100 :: gridelevfile
-     character*100 :: griddistfile
-     character*100 :: gridareafile
-     character*100 :: drainareafile
-     character*100 :: basinfile
-     character*100 :: runoffdelayfile
-     character*100 :: runoffdelaymfile
-     character*100 :: baseflowdelayfile
-     character*100 :: refqfile
-     character*100 :: basinmaskfile
-     character*100 :: flowtypefile 
-     character*100 :: baseflowdwiratiofile 
-     character*100 :: runoffdwiratiofile 
+     character(len=LDT_CONST_PATH_LEN) :: riverwidthfile
+     character(len=LDT_CONST_PATH_LEN) :: riverheightfile
+     character(len=LDT_CONST_PATH_LEN) :: riverlengthfile
+     character(len=LDT_CONST_PATH_LEN) :: riverzfile
+     character(len=LDT_CONST_PATH_LEN) :: fldheightfile
+     character(len=LDT_CONST_PATH_LEN) :: fldzfile
+     character(len=LDT_CONST_PATH_LEN) :: flowdirxfile
+     character(len=LDT_CONST_PATH_LEN) :: flowdiryfile
+     character(len=LDT_CONST_PATH_LEN) :: gridelevfile
+     character(len=LDT_CONST_PATH_LEN) :: griddistfile
+     character(len=LDT_CONST_PATH_LEN) :: gridareafile
+     character(len=LDT_CONST_PATH_LEN) :: drainareafile
+     character(len=LDT_CONST_PATH_LEN) :: basinfile
+     character(len=LDT_CONST_PATH_LEN) :: runoffdelayfile
+     character(len=LDT_CONST_PATH_LEN) :: runoffdelaymfile
+     character(len=LDT_CONST_PATH_LEN) :: baseflowdelayfile
+     character(len=LDT_CONST_PATH_LEN) :: refqfile
+     character(len=LDT_CONST_PATH_LEN) :: basinmaskfile
+     character(len=LDT_CONST_PATH_LEN) :: flowtypefile 
+     character(len=LDT_CONST_PATH_LEN) :: baseflowdwiratiofile 
+     character(len=LDT_CONST_PATH_LEN) :: runoffdwiratiofile 
 
      type(LDT_paramEntry) :: hymap_river_width
      type(LDT_paramEntry) :: hymap_river_height
@@ -584,20 +593,22 @@ contains
        nextx = nint(HYMAP_struc(n)%hymap_flow_dir_x%value(:,:,1))
        nexty = nint(HYMAP_struc(n)%hymap_flow_dir_y%value(:,:,1))
        mask = nint(HYMAP_struc(n)%hymap_mask%value(:,:,1))
-       
+
+       ! Yeosang Yoon: support flexible grid setting
        call adjust_nextxy(&
             LDT_rc%gnc(n),&
             LDT_rc%gnr(n),&
             -9999, &
-            nextx, & 
-            nexty, & 
-            mask, & 
-            LDT_rc%gridDesc(n,5),&
-            LDT_rc%gridDesc(n,4),&
-            hymapparms_gridDesc(n,5),&
-            hymapparms_gridDesc(n,4),&
-            hymapparms_gridDesc(n,9))
-       
+            nextx, &
+            nexty, &
+            mask, &
+            LDT_rc%gridDesc(n,5),&   ! lon min of smaller domain
+            LDT_rc%gridDesc(n,4),&   ! lat min of smaller domain
+            hymapparms_gridDesc(n,5),&   ! lon min of larger domain
+            hymapparms_gridDesc(n,4),&   ! lat min of larger domain
+            hymapparms_gridDesc(n,9),&   ! dx spatial resolution
+            hymapparms_gridDesc(n,10))   ! dy spatial resolution
+ 
        HYMAP_struc(n)%hymap_flow_dir_x%value(:,:,1) = real(nextx(:,:))
        HYMAP_struc(n)%hymap_flow_dir_y%value(:,:,1) = real(nexty(:,:))
        
@@ -719,7 +730,7 @@ contains
 
   end subroutine HYMAPparms_writeData
 
-  subroutine adjust_nextxy(nx,ny,imis,i2nextx,i2nexty,i2mask,zgx,zgy,zpx,zpy,zres)
+  subroutine adjust_nextxy(nx,ny,imis,i2nextx,i2nexty,i2mask,zgx,zgy,zpx,zpy,xres,yres)
     ! ================================================
     ! to adjust flow direction matrixes for smaller domain
     ! by Augusto GETIRANA
@@ -727,6 +738,8 @@ contains
     ! at HSL/GSFC/NASA
     ! ================================================   
     
+    use LDT_logmod, only : LDT_logunit
+
     implicit none       
   
     integer, intent(in)    :: nx                  ! number of grids in horizontal
@@ -739,38 +752,51 @@ contains
     real*4,  intent(in)    :: zgy                 ! lat min of smaller domain
     real*4,  intent(in)    :: zpx                 ! lon min of larger domain
     real*4,  intent(in)    :: zpy                 ! lat min of larger domain
-    real*4,  intent(in)    :: zres                ! spatial resolution
+    real*4,  intent(in)    :: xres,yres           ! spatial resolution
     
     integer, parameter :: ibound = -9
     
     integer             ::  idx,idy
-    
-    idx=int((zgx-zpx)/zres)
-    idy=int((zgy-zpy)/zres)
+
+    idx=int((zgx-zpx)/xres)
+    idy=int((zgy-zpy)/yres)
     
     where(i2nextx>0)i2nextx=i2nextx-idx
     where(i2nexty>0)i2nexty=i2nexty-idy
-    
 
-    i2nexty(1,:)=imis
-    i2nexty(nx,:)=imis
-    i2nexty(:,1)=imis
-    i2nexty(:,ny)=imis
+!Hiroko: do not insert boundary if global domain
+!        this fix only works on single processor run
+    if ( idx.eq.0 .and. idy.eq.0 ) then
+     write(LDT_logunit,*) '[INFO] HYMAP parameter global'
+     where(i2nextx<1.and.i2nextx/=imis.and.i2mask>0)
+        i2nextx=ibound
+        i2nexty=ibound
+     endwhere
+     where(i2nextx>nx.and.i2mask>0)
+        i2nextx=ibound
+        i2nexty=ibound
+     endwhere
+    else    ! local domain, insert boundary
+     i2nexty(1,:)=imis
+     i2nexty(nx,:)=imis
+     i2nexty(:,1)=imis
+     i2nexty(:,ny)=imis
     
-    i2nextx(1,:)=imis
-    i2nextx(nx,:)=imis
-    i2nextx(:,1)=imis
-    i2nextx(:,ny)=imis
-
-    where(i2nextx<=1.and.i2nextx/=imis.and.i2mask>0)
-       i2nextx=ibound
-       i2nexty=ibound
-    endwhere
+     i2nextx(1,:)=imis
+     i2nextx(nx,:)=imis
+     i2nextx(:,1)=imis
+     i2nextx(:,ny)=imis
+ 
+     where(i2nextx<=1.and.i2nextx/=imis.and.i2mask>0)
+        i2nextx=ibound
+        i2nexty=ibound
+     endwhere
     
-    where(i2nextx>=nx.and.i2mask>0)
-       i2nextx=ibound
-       i2nexty=ibound
-    endwhere
+     where(i2nextx>=nx.and.i2mask>0)
+        i2nextx=ibound
+        i2nexty=ibound
+     endwhere
+    endif    ! global
     
     where(i2nexty<=1.and.i2nexty/=imis.and.i2mask>0)
        i2nextx=ibound

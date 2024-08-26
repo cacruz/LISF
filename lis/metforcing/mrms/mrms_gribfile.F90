@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !
 !
@@ -43,8 +49,7 @@ subroutine mrms_gribfile( name, mrms_grib_dir, yr, mo, da, hr)
 ! !ARGUMENTS: 
   integer :: yr, mo, da, hr
 
-  character(150) :: name
-  character(40) :: mrms_grib_dir
+  character(len=*) :: name, mrms_grib_dir
   character(4) :: cyear
   character(2) :: cmon, cday, chour
 

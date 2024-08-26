@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -26,6 +28,7 @@ subroutine vic411_writerst(n)
    use LIS_logMod,     only : LIS_logunit
    use LIS_fileIOMod,  only : LIS_create_output_directory, &
                               LIS_create_restart_filename
+   use LIS_constantsMod, only : LIS_CONST_PATH_LEN
    use vic411_lsmMod,  only : vic411_struc
 #if (defined SPMD) 
    use LIS_mpiMod
@@ -51,7 +54,7 @@ subroutine vic411_writerst(n)
 !   index of the nest
 !  \end{description}
 !EOP
-   character*100 :: filen
+   character(len=LIS_CONST_PATH_LEN) :: filen
    logical       :: alarmCheck
    integer       :: status, i
    character*4   :: fproc

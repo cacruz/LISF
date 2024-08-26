@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -19,6 +21,7 @@ module noah32_peMod
 !  12 Jan 2012; Sujay Kumar, Initial Code
 ! !USES:        
   use ESMF
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
   implicit none
 
@@ -56,14 +59,13 @@ contains
 ! !INTERFACE:
   subroutine noah32_setup_pedecvars(DEC_State, Feas_State)
 ! !USES:
-    use ESMF
     use LIS_coreMod,       only : LIS_rc, LIS_config,LIS_vecTile
     use LIS_logMod,        only : LIS_logunit, LIS_verify
     use noah32_lsmMod,     only : noah32_struc
 
     implicit none
 ! !ARGUMENTS: 
-    character*100               :: decSpaceAttribsFile
+    character(len=LIS_CONST_PATH_LEN) :: decSpaceAttribsFile
     type(ESMF_State)            :: DEC_State
     type(ESMF_State)            :: Feas_State
 

@@ -1,6 +1,13 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0     
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
+
 !#include "LIS_misc.h"
 module NoahMP401_lsmMod
 !BOP
@@ -118,6 +125,7 @@ module NoahMP401_lsmMod
 !
 ! !USES:
     use NoahMP401_module
+    use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
     implicit none
 
@@ -132,7 +140,7 @@ module NoahMP401_lsmMod
     public :: NoahMP401_struc
 !EOP
     type, public :: NoahMP401_type_dec
-        character*256      :: rfile
+        character(len=LIS_CONST_PATH_LEN) :: rfile
         character*256      :: rformat
         !-------------------------------------------------------------------------
         ! Parameter file names
@@ -196,6 +204,7 @@ module NoahMP401_lsmMod
         integer            :: tbot_opt
         integer            :: stc_opt
         integer            :: gla_opt
+        integer            :: sndpth_gla_opt
         integer            :: rsf_opt
         integer            :: soil_opt
         integer            :: pedo_opt
@@ -280,6 +289,12 @@ contains
                 NOAHMP401_struc(n)%noahmp401(t)%qair = 0.0
                 NOAHMP401_struc(n)%noahmp401(t)%wind_e = 0.0
                 NOAHMP401_struc(n)%noahmp401(t)%wind_n = 0.0
+                NOAHMP401_struc(n)%noahmp401(t)%sfcheadrt = 0.0
+
+                !ag(05Jan2021)
+                NOAHMP401_struc(n)%noahmp401(t)%rivsto = 0.0
+                NOAHMP401_struc(n)%noahmp401(t)%fldsto = 0.0
+                NOAHMP401_struc(n)%noahmp401(t)%fldfrc = 0.0
             enddo ! end of tile (t) loop
 
             !------------------------------------------------------------------------
@@ -289,18 +304,18 @@ contains
 
             call LIS_update_timestep(LIS_rc, n, NOAHMP401_struc(n)%ts)
 
-            call LIS_registerAlarm("NoahMP401 model alarm",&
+            write(fnest,'(i3.3)') n
+            call LIS_registerAlarm("NoahMP401 model alarm "//trim(fnest),&
                                    NOAHMP401_struc(n)%ts, &
                                    NOAHMP401_struc(n)%ts)
 
-            call LIS_registerAlarm("NoahMP401 restart alarm", &
+            call LIS_registerAlarm("NoahMP401 restart alarm "//trim(fnest), &
                                    NOAHMP401_struc(n)%ts,&
                                    NOAHMP401_struc(n)%rstInterval)
             
             ! EMK Add alarm to reset tair_agl_min for RHMin.  This should 
             ! match the output interval, since that is used for calculating 
             ! Tair_F_min.            
-            write(fnest,'(i3.3)') n
             call LIS_registerAlarm("NoahMP401 RHMin alarm "//trim(fnest),&
                  NOAHMP401_struc(n)%ts,&
                  LIS_sfmodel_struc(n)%outInterval)

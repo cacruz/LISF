@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -43,11 +49,11 @@ subroutine read_HYMAP_basin(n, array)
   integer :: ftn
   integer :: c,r
   logical :: file_exists
-  integer :: iarray(LDT_rc%lnc(n),LDT_rc%lnr(n),1)
+  integer :: iarray(LDT_rc%lnc(n),LDT_rc%lnr(n),1) ! precision of binary file is int32
 
   inquire(file=trim(HYMAP_struc(n)%basinfile), exist=file_exists)
   if(.not.file_exists) then 
-     write(LDT_logunit,*) '[ERR] Basin map, ',&
+     write(LDT_logunit,*) '[ERR] HYMAP basin map, ',&
            trim(HYMAP_struc(n)%basinfile),', not found.'
      write(LDT_logunit,*) 'Program stopping ...'
      call LDT_endrun

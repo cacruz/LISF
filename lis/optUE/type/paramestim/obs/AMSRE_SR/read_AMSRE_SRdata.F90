@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -21,6 +23,7 @@
     use LIS_timeMgrMod, only : LIS_calendar
     use LIS_logMod,     only : LIS_logunit, LIS_verify, &
          LIS_getNextUnitNumber, LIS_releaseUnitNumber
+    use LIS_constantsMod,   only : LIS_CONST_PATH_LEN
     use LIS_fileIOMod,      only : LIS_readData
     use AMSRE_SR_em_obsMod, only : SRemobs
     use map_utils
@@ -44,7 +47,7 @@
     integer, parameter  :: numchannels=6
     integer, parameter  :: numpolarizations=2
     type(ESMF_Field)    :: emField
-    character*100       :: emobsdir 
+    character(len=LIS_CONST_PATH_LEN) :: emobsdir 
     logical             :: data_update
     integer             :: status 
     logical             :: found

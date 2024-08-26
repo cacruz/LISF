@@ -1,7 +1,9 @@
 //-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-// NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+// NASA Goddard Space Flight Center
+// Land Information System Framework (LISF)
+// Version 7.5
 //
-// Copyright (c) 2015 United States Government as represented by the
+// Copyright (c) 2024 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration.
 // All Rights Reserved.
 //-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -11,6 +13,8 @@
 #include <string.h>
 
 #define BARETYPE ( 12 ) // UMD -- HARDCODED!
+
+extern int vic412_read_vegparam(FILE *, int, int, int, veg_con_struct *);
 
 int real_2_vic(int real_type, int Nveg_type)
 {

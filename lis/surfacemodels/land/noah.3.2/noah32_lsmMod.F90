@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -70,6 +72,7 @@ module noah32_lsmMod
 !
 ! !USES:        
   use noah32_module
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
   implicit none
 
@@ -85,10 +88,10 @@ module noah32_lsmMod
 !EOP
   type, public ::  noah32_type_dec 
 
-     character*100              :: rfile
-     character*100              :: vfile
-     character*100              :: sfile
-     character*100              :: gfile
+     character(len=LIS_CONST_PATH_LEN) :: rfile
+     character(len=LIS_CONST_PATH_LEN) :: vfile
+     character(len=LIS_CONST_PATH_LEN) :: sfile
+     character(len=LIS_CONST_PATH_LEN) :: gfile
      integer                    :: useptf
      integer                    :: soilscheme
      integer                    :: nslay

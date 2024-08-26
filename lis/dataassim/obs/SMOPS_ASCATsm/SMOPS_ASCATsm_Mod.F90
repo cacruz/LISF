@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -35,11 +37,13 @@
 !  8 May 2013    Sujay Kumar; initial specification
 !  28 Sep 2017: Mahdi Navari; Updated to read ASCAT from SMOPS V3
 !  1  Apr 2019  Yonghwan Kwon: Upated for reading monthy CDF for the current month
+!  08 May 2024: Mahdi Navari; Updated to read ASCAT Metop-B and C from SMOPS V4
 ! 
 module SMOPS_ASCATsm_Mod
 ! !USES: 
   use ESMF
   use map_utils
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
   implicit none
 
@@ -80,7 +84,7 @@ module SMOPS_ASCATsm_Mod
 
      integer                :: nbins
      integer                :: ntimes
-     real*8                 :: version2_time, version3_time
+     real*8                 :: version2_time, version3_time, version4_time
      character(len=17)      :: version
      character(len=10)      :: conv
 
@@ -89,8 +93,8 @@ module SMOPS_ASCATsm_Mod
                                              !e.g., 4/29 13:00:00)
      integer                :: cdf_read_opt  ! 0: read all months at one time
                                              ! 1: read only the current month
-     character*100          :: modelcdffile
-     character*100          :: obscdffile
+     character(len=LIS_CONST_PATH_LEN) :: modelcdffile
+     character(len=LIS_CONST_PATH_LEN) :: obscdffile
 
   end type SMOPS_ASCATsm_dec
   
@@ -106,7 +110,6 @@ contains
 ! !INTERFACE: 
   subroutine SMOPS_ASCATsm_setup(k, OBS_State, OBS_Pert_State)
 ! !USES: 
-    use ESMF
     use LIS_coreMod
     use LIS_timeMgrMod
     use LIS_historyMod
@@ -142,7 +145,7 @@ contains
     type(ESMF_ArraySpec)   ::  intarrspec, realarrspec
     type(ESMF_Field)       ::  pertField(LIS_rc%nnest)
     type(ESMF_ArraySpec)   ::  pertArrSpec
-    character*100          ::  rtsmopssmobsdir
+    character(len=LIS_CONST_PATH_LEN) ::  rtsmopssmobsdir
     character*100          ::  temp
     real,  allocatable         ::  obsstd(:)
     character*1            ::  vid(2)
@@ -599,6 +602,11 @@ contains
           yr1 = 2017; mo1 = 8; da1 = 24; hr1 = 12; mn1 = 0; ss1 = 0
           call LIS_date2time(SMOPS_ASCATsm_struc(n)%version3_time,updoy,upgmt,&
              yr1,mo1,da1,hr1,mn1,ss1)
+
+          yr1 = 2024; mo1 = 4; da1 = 25; hr1 = 0; mn1 = 0; ss1 = 0
+          call LIS_date2time(SMOPS_ASCATsm_struc(n)%version4_time,updoy,upgmt,&
+             yr1,mo1,da1,hr1,mn1,ss1)
+
        endif
 
        gridDesci = 0 

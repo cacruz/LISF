@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module nldas2_forcingMod
 !BOP
@@ -62,6 +68,8 @@ module nldas2_forcingMod
 ! 14 Mar 2014: David Mocko: Added CAPE and PET forcing from NLDAS-2
 ! 
 ! !USES: 
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
+
   implicit none
 
   PRIVATE
@@ -81,9 +89,9 @@ module nldas2_forcingMod
      real          :: ts
      integer       :: nc, nr         ! AWIPS 212 dimensions
      character*50  :: nldas2_filesrc
-     character*100 :: nldas2dir        ! NLDAS-2 Forcing Directory
-     character*100 :: file_elevdiff
-     character*100 :: file_narrelev
+     character(len=LDT_CONST_PATH_LEN) :: nldas2dir        ! NLDAS-2 Forcing Directory
+     character(len=LDT_CONST_PATH_LEN) :: file_elevdiff
+     character(len=LDT_CONST_PATH_LEN) :: file_narrelev
 
      real*8        :: nldas2time1,nldas2time2
      integer       :: findtime1, findtime2

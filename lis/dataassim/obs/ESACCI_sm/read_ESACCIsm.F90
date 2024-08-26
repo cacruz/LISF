@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -26,6 +28,7 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
   use map_utils
   use LIS_pluginIndices
   use LIS_DAobservationsMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use ESACCI_sm_Mod, only : ESACCI_sm_struc
 
   implicit none
@@ -57,8 +60,7 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
   real,  parameter       :: MAX_SM_VALUE=0.45, MIN_SM_VALUE=0.0001
   integer                :: status
   integer                :: grid_index
-  character*100          :: smobsdir
-  character*100          :: fname
+  character(len=LIS_CONST_PATH_LEN)          :: smobsdir, fname
   logical                :: alarmCheck, file_exists
   integer                :: t,c,r,i,j,p,jj
   real,          pointer :: obsl(:)
@@ -107,7 +109,7 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
      ESACCI_sm_struc(n)%smtime = -1
      
      call create_ESACCIsm_filename(smobsdir, &
-          ESACCI_sm_struc(n)%version, &
+          ESACCI_sm_struc(n)%version, ESACCI_sm_struc(n)%sensor,&
           LIS_rc%yr, LIS_rc%mo, &
           LIS_rc%da, fname)
 
@@ -116,12 +118,11 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
      if(file_exists) then 
         
         write(LIS_logunit,*) 'Reading ',trim(fname)
-        call read_ESACCI_data(n,k,fname,smobs)
+        call read_ESACCI_data(n,k,fname,ESACCI_sm_struc(n)%version,smobs) ! NT: include version in reading
 
      endif
 
      ESACCI_sm_struc(n)%smobs  = LIS_rc%udef
-
      do r=1,LIS_rc%obs_lnr(k)
         do c=1,LIS_rc%obs_lnc(k)
            grid_index = LIS_obs_domain(n,k)%gindex(c,r)
@@ -129,7 +130,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
               if(smobs(c+(r-1)*LIS_rc%obs_lnc(k)).gt.0) then             
                  ESACCI_sm_struc(n)%smobs(c,r) = &
                       smobs(c+(r-1)*LIS_rc%obs_lnc(k))                 
-
                  lon = LIS_obs_domain(n,k)%lon(c+(r-1)*LIS_rc%obs_lnc(k))
                  
                  lhour = 12.0
@@ -139,7 +139,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
            endif
         enddo
      enddo
-
   endif
   
   call ESMF_StateGet(OBS_State,"Observation01",smfield,&
@@ -180,7 +179,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
 !-------------------------------------------------------------------------
 !  Transform data to the LSM climatology using a CDF-scaling approach
 !-------------------------------------------------------------------------     
-
   if(LIS_rc%dascaloption(k).ne."none".and.fnd.ne.0) then  
      call LIS_rescale_with_CDF_matching(    &
           n,k,                              & 
@@ -193,7 +191,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
           ESACCI_sm_struc(n)%model_cdf,     &
           ESACCI_sm_struc(n)%obs_cdf,       &
           sm_current)
-     
   endif
 
   obsl = LIS_rc%udef 
@@ -204,7 +201,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
         endif
      enddo
   enddo
-
 !-------------------------------------------------------------------------
 !  Apply LSM-based QC and screening of observations
 !-------------------------------------------------------------------------     
@@ -213,7 +209,6 @@ subroutine read_ESACCIsm(n,k,  OBS_State, OBS_Pert_State)
        //trim(LIS_ESACCIsmobsId)//char(0),n, k,OBS_state)
 
   call LIS_checkForValidObs(n,k,obsl,fnd,sm_current)
-
 
   if(fnd.eq.0) then 
      data_upd_flag_local = .false. 
@@ -313,7 +308,7 @@ end subroutine read_ESACCIsm
 ! \label{read_ESACCI_data}
 !
 ! !INTERFACE:
-subroutine read_ESACCI_data(n, k, fname, smobs_ip)
+subroutine read_ESACCI_data(n, k, fname, version, smobs_ip)
 ! 
 ! !USES:   
 #if(defined USE_NETCDF3 || defined USE_NETCDF4)
@@ -331,7 +326,7 @@ subroutine read_ESACCI_data(n, k, fname, smobs_ip)
   integer                       :: k
   character (len=*)             :: fname
   real                          :: smobs_ip(LIS_rc%obs_lnc(k)*LIS_rc%obs_lnr(k))
-
+  real	                        :: version
 
 ! !OUTPUT PARAMETERS:
 !
@@ -354,6 +349,7 @@ subroutine read_ESACCI_data(n, k, fname, smobs_ip)
 ! 
 !EOP
   integer      :: sm(ESACCI_sm_struc(n)%ecvnc,ESACCI_sm_struc(n)%ecvnr)
+  real         :: sm1(ESACCI_sm_struc(n)%ecvnc,ESACCI_sm_struc(n)%ecvnr)
   integer      :: flag(ESACCI_sm_struc(n)%ecvnc,ESACCI_sm_struc(n)%ecvnr)
 
   real         :: sm_combined(ESACCI_sm_struc(n)%ecvnc,ESACCI_sm_struc(n)%ecvnr)
@@ -378,7 +374,11 @@ subroutine read_ESACCI_data(n, k, fname, smobs_ip)
   call LIS_verify(ios, 'Error nf90_inq_varid: flag')
   
   !values
-  ios = nf90_get_var(nid, smid, sm)
+  if(version .lt. 3) then
+      ios = nf90_get_var(nid, smid, sm)
+  else
+      ios = nf90_get_var(nid, smid, sm1)
+  endif
   call LIS_verify(ios, 'Error nf90_get_var: sm')
   
   ios = nf90_get_var(nid, flagid,flag)
@@ -394,15 +394,22 @@ subroutine read_ESACCI_data(n, k, fname, smobs_ip)
 ! dense vegetation (flag=2) and no convergence in the ESACCI algorithm 
 ! (flag =3) and undefined values are masked out. 
 !------------------------------------------------------------------------
-        
-        if(flag(c,r).ne.0.or.sm(c,r).le.0) then 
-           sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = LIS_rc%udef
+        if(version .lt. 3) then
+            if(flag(c,r).ne.0.or.sm(c,r).le.0) then 
+               sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = LIS_rc%udef
+            else
+              sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = sm(c,r)*0.0001
+            endif
         else
-           sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = sm(c,r)*0.0001
+            if(flag(c,r).ne.0.or.sm1(c,r).le.0) then ! NT: checking sm and sm1 separately
+               sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = LIS_rc%udef
+            else
+              sm_combined(c,ESACCI_sm_struc(n)%ecvnr-r+1) = sm1(c,r)
+           endif
         endif
      enddo
   enddo
- 
+
   do r=1, ESACCI_sm_struc(n)%ecvnr
      do c=1, ESACCI_sm_struc(n)%ecvnc
         sm_data(c+(r-1)*ESACCI_sm_struc(n)%ecvnc) = sm_combined(c,r)
@@ -417,7 +424,7 @@ subroutine read_ESACCI_data(n, k, fname, smobs_ip)
         endif
      enddo
   enddo
-  
+
 !--------------------------------------------------------------------------
 ! Interpolate to the DA observation space
 !-------------------------------------------------------------------------- 
@@ -437,13 +444,15 @@ end subroutine read_ESACCI_data
 ! \label{create_ESACCIsm_filename}
 ! 
 ! !INTERFACE: 
-subroutine create_ESACCIsm_filename(ndir, version, yr, mo,da, filename)
+subroutine create_ESACCIsm_filename(ndir, version, sensor, yr, mo,da, filename)
 ! !USES:   
+  use LIS_logMod
 
   implicit none
 ! !ARGUMENTS: 
   character(len=*)  :: filename
   real              :: version
+  character(len=*)  :: sensor
   integer           :: yr, mo, da
   character (len=*) :: ndir
 ! 
@@ -462,10 +471,31 @@ subroutine create_ESACCIsm_filename(ndir, version, yr, mo,da, filename)
 
   character (len=4) :: fyr
   character (len=2) :: fmo,fda
-  
+  character (len=3) :: cversion3
+  character (len=4) :: cversion4
+  character (len=8) :: sensortxt !20220622 Pang 
+ 
   write(unit=fyr, fmt='(i4.4)') yr
   write(unit=fmo, fmt='(i2.2)') mo
   write(unit=fda, fmt='(i2.2)') da
+  if (version .lt. 10.0) then
+     write(unit=cversion3, fmt='(f3.1)') version
+  else
+     ! For future version, version number > 10, e.g., 10.2
+     write(unit=cversion4, fmt='(f4.1)') version
+  endif
+ 
+  if(sensor == 'passive') then
+      sensortxt = 'PASSIVE'
+  elseif(sensor == 'active') then
+      sensortxt = 'ACTIVE'
+  elseif(sensor == 'combined') then
+      sensortxt = 'COMBINED'
+  else
+      write(LIS_logunit,*) "[ERR] Invalid ESA CCI soil moisture sensor type was chosen."
+      write(LIS_logunit,*) "[ERR] Please choose either 'passive', 'active', or 'combined'."
+      call LIS_endrun
+  endif
  
   if(version.eq.1) then 
      filename = trim(ndir)//'/'//trim(fyr)//&
@@ -480,6 +510,17 @@ subroutine create_ESACCIsm_filename(ndir, version, yr, mo,da, filename)
      filename = trim(ndir)//'/'//trim(fyr)//&
           '/ESACCI-SOILMOISTURE-L3S-SSMV-COMBINED-' & 
           //trim(fyr)//trim(fmo)//trim(fda)//'000000-fv02.2.nc'
+  else
+     ! NT: for versions after 2.2
+     if (version .lt. 10.0) then
+         filename = trim(ndir)//'/'//trim(fyr)//&
+              '/ESACCI-SOILMOISTURE-L3S-SSMV-'//trim(sensortxt)//'-' &  !20220622 Pang
+              //trim(fyr)//trim(fmo)//trim(fda)//'000000-fv0'//cversion3//'.nc'
+     else
+         filename = trim(ndir)//'/'//trim(fyr)//&
+              '/ESACCI-SOILMOISTURE-L3S-SSMV-'//trim(sensortxt)//'-' & !20220622 Pang
+              //trim(fyr)//trim(fmo)//trim(fda)//'000000-fv'//cversion4//'.nc'
+     endif
   endif
 end subroutine create_ESACCIsm_filename
 

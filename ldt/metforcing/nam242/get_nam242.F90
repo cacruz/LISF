@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -18,6 +24,7 @@ subroutine get_nam242(n, findex)
   use LDT_metforcingMod, only : LDT_forc
   use LDT_timeMgrMod,    only : LDT_tick, LDT_get_nstep
   use LDT_logMod,        only : LDT_logunit, LDT_endrun
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use nam242_forcingMod, only : nam242_struc
 
   implicit none
@@ -76,7 +83,7 @@ subroutine get_nam242(n, findex)
   real*8  :: timenow, time1, time2
   real*8  :: dumbtime1, dumbtime2
   real    :: gmt1, gmt2
-  character(len=80) :: name00, name03, name06
+  character(len=LDT_CONST_PATH_LEN) :: name00, name03, name06
   logical :: file_exists, file_exists1, file_exists2
   integer :: option
   real :: gridDesci(20)
@@ -169,8 +176,8 @@ subroutine get_nam242(n, findex)
         try = try+1
         call create_nam242filename( order, name00, name03, name06, F06flag, &
              nam242_struc(n)%namdir, yr1, mo1, da1, hr1 )
-        write(LDT_logunit,*) 'Reading NAM file1 (I) ',name00
-        write(LDT_logunit,*) 'Reading NAM file1 (A) ',name03
+        write(LDT_logunit,*) 'Reading NAM file1 (I) ',trim(name00)
+        write(LDT_logunit,*) 'Reading NAM file1 (A) ',trim(name03)
         inquire(file=name00,exist=file_exists1) 
         inquire(file=name03,exist=file_exists2)
 !-----------------------------------------------------------------
@@ -189,7 +196,7 @@ subroutine get_nam242(n, findex)
         endif
            
         if(F06flag) then 
-           write(LDT_logunit,*) 'Reading NAM file1 (A)',name06
+           write(LDT_logunit,*) 'Reading NAM file1 (A)',trim(name06)
         endif
 
         if(status.eq.0) then
@@ -240,8 +247,8 @@ subroutine get_nam242(n, findex)
         try = try+1
         call create_nam242filename( order, name00, name03,name06, &
              F06flag, nam242_struc(n)%namdir, yr1, mo1, da1, hr1 )
-        write(LDT_logunit,*) 'First Reading NAM file2 (I) ',name00
-        write(LDT_logunit,*) 'First Reading NAM file2 (A) ',name03
+        write(LDT_logunit,*) 'First Reading NAM file2 (I) ',trim(name00)
+        write(LDT_logunit,*) 'First Reading NAM file2 (A) ',trim(name03)
 
         inquire(file=name00,exist=file_exists1) 
         inquire(file=name03,exist=file_exists2)
@@ -252,15 +259,15 @@ subroutine get_nam242(n, findex)
            inquire(file=name03,exist=file_exists2)
            if(file_exists1.and.file_exists2) then 
               status = 0 
-              write(LDT_logunit,*) 'F9 Reading NAM file2 (I) ',name00
-              write(LDT_logunit,*) 'F9 Reading NAM file2 (A) ',name03
+              write(LDT_logunit,*) 'F9 Reading NAM file2 (I) ',trim(name00)
+              write(LDT_logunit,*) 'F9 Reading NAM file2 (A) ',trim(name03)
            else
               status = 1
            endif
         endif
 
         if(F06flag) then 
-           write(LDT_logunit,*) 'Reading NAM file2 (A)',name06
+           write(LDT_logunit,*) 'Reading NAM file2 (A)',trim(name06)
         endif
         call read_nam242(n, findex, order, name00, name03, name06, &
                          F06flag, ferror, try)

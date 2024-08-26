@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 ! !MODULE: SMOPSsm_obsMod
 ! 
@@ -118,6 +124,7 @@ module SMOPSsm_obsMod
 ! !USES: 
   use ESMF
   use map_utils
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
 
@@ -133,7 +140,7 @@ module SMOPSsm_obsMod
 !EOP
   type, public :: smopssmobsdec
 
-     character*100          :: odir
+     character(len=LDT_CONST_PATH_LEN)          :: odir
      integer                :: useASCAT
      integer                :: useSMOS
      integer                :: useAMSR2
@@ -160,7 +167,6 @@ contains
 ! !INTERFACE: 
   subroutine SMOPSsm_obsinit()
 ! !USES: 
-   use ESMF
    use LDT_coreMod,      only : LDT_rc, LDT_config
    use LDT_DAobsDataMod, only : LDT_DAobsData, LDT_initializeDAobsEntry
    use LDT_timeMgrMod,   only : LDT_clock, LDT_calendar, LDT_date2time

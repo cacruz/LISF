@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -31,6 +33,7 @@ module geowrsi2_lsmMod
 ! !USES:        
   use ESMF
   use LIS_timeMgrMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use geowrsi2_module
   use geowrsi2_physics_module, only : gCalcSOSmode
   use fbil_module, only : charN
@@ -63,7 +66,7 @@ module geowrsi2_lsmMod
     
     type(charN)    :: inputParmFile     ! User Settings Input file (GeoWRSI-based)
     type(charN)    :: cropDir           ! Directory where crop parameter files reside
-    character*120  :: rfile             ! Restart file path entry
+    character(len=LIS_CONST_PATH_LEN) :: rfile             ! Restart file path entry
     real           :: rstInterval       ! Restart file interval (e.g., dekad)
 
     integer        :: initTstepSeason   ! Average initial timestep of season
@@ -101,7 +104,6 @@ contains
   subroutine geowrsi2_lsm_ini()
 
 ! !USES:
-   use ESMF
    use LIS_surfaceModelDataMod, only : LIS_sfmodel_struc
    use LIS_timeMgrMod
    use LIS_coreMod,  only : LIS_rc

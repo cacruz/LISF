@@ -1,7 +1,9 @@
 //-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-// NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+// NASA Goddard Space Flight Center
+// Land Information System Framework (LISF)
+// Version 7.5
 //
-// Copyright (c) 2015 United States Government as represented by the
+// Copyright (c) 2024 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration.
 // All Rights Reserved.
 //-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -14,6 +16,10 @@
 
 #define VIC_BASED ( 0 )
 #define LIS_BASED ( 1 )
+
+extern void vic411_lis_scan_soilparam_flat_ascii(FILE *, float *, float *);
+
+extern void vic411_compute_treeline_lis(double, double *, char *);
 
 vic411_soil_con_struct vic411_lis_read_soilparam_arc(FILE *, char *, float *, float *);
 vic411_veg_con_struct *vic411_set_vegparam(int tile_idx,       // index of current tile 

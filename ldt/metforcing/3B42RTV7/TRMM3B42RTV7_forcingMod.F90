@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module TRMM3B42RTV7_forcingMod
 !BOP
@@ -51,6 +57,7 @@ module TRMM3B42RTV7_forcingMod
 
 ! !USES:
   use ESMF
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
   PRIVATE
@@ -70,7 +77,7 @@ module TRMM3B42RTV7_forcingMod
      real                     :: ts
      integer                  :: nc
      integer                  :: nr
-     character*40             :: directory  
+     character(len=LDT_CONST_PATH_LEN) :: directory  
      real*8                   :: time_TStepStart ! SY
      integer                  :: yr_TStepStart ! SY
      integer                  :: mo_TStepStart ! SY
@@ -129,7 +136,6 @@ contains
     use LDT_logMod,  only : LDT_logunit, LDT_endrun, &
                             LDT_getNextUnitNumber, &
                             LDT_releaseUnitNumber, LDT_verify 
-    use ESMF
 
     implicit none
 

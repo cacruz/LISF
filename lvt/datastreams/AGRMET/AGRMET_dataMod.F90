@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 ! 
 ! !MODULE: AGRMET_dataMod
@@ -45,7 +51,7 @@ module AGRMET_dataMod
   PUBLIC :: AGRMETdata
 !EOP
   type, public :: agrmetdatadec
-     character*100           :: odir
+     character*255           :: odir
      real*8                  :: changetime1,changetime2
      real, allocatable           :: rlat(:)
      real, allocatable           :: rlon(:)

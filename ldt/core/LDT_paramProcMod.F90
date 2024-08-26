@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 #include "LDT_NetCDF_inc.h"
@@ -25,6 +31,7 @@ module LDT_paramProcMod
   use LDT_vegdataMod
   use LDT_topoMod
   use LDT_glacierMod
+  use LDT_glacierFractionMod 
 
   use LDT_LSMparamProcMod
   use LDT_routingParamProcMod
@@ -269,6 +276,7 @@ contains
     call LDT_lakeparams_init
     call LDT_openwater_init
     call LDT_glacier_init
+    call LDT_glacierfrac_init
 
     call LDT_soils_init
     call LDT_greenness_init
@@ -325,6 +333,7 @@ contains
     call LDT_lakeparams_init
     call LDT_openwater_init
     call LDT_glacier_init
+    call LDT_glacierfrac_init
 
     call LDT_soils_init(flag)
     call LDT_greenness_init
@@ -653,6 +662,7 @@ contains
     call LDT_climate_readParamSpecs()
     call LDT_vegdata_readParamSpecs()
     call LDT_glacier_readParamSpecs()
+    call LDT_glacierfrac_readParamSpecs()
 
   end subroutine ReadParamSpecs_LIS
   
@@ -892,6 +902,7 @@ contains
     call LDT_climate_readParamSpecs()
     call LDT_vegdata_readParamSpecs()
     call LDT_glacier_readParamSpecs()
+    call LDT_glacierfrac_readParamSpecs()
 
   end subroutine readParamSpecs_LISHydro
 
@@ -993,7 +1004,7 @@ contains
             varID=LDT_LSMparam_struc(n)%xtimeID))
        
  !- LIS-Domain Grid file attributes:
-       select case ( LDT_rc%lis_map_proj )
+       select case ( LDT_rc%lis_map_proj(n) )
           
        case ( "latlon" )
           call LDT_verify(nf90_put_att(LDT_LSMparam_struc(n)%param_file_ftn,NF90_GLOBAL,"MAP_PROJECTION", &
@@ -1576,7 +1587,7 @@ contains
             varID=LDT_LSMparam_struc(n)%xtimeID))
        
  !- LIS-Domain Grid file attributes:
-       select case ( LDT_rc%lis_map_proj )
+       select case ( LDT_rc%lis_map_proj(n) )
           
        case ( "latlon" )
           call LDT_verify(nf90_put_att(LDT_LSMparam_struc(n)%param_file_ftn,NF90_GLOBAL,"MAP_PROJECTION", &
@@ -2211,6 +2222,10 @@ contains
     call LDT_routingparams_writeHeader(n,ftn,dimID,monthID)
     call LDT_irrigation_writeHeader(n,ftn,dimID)
     call LDT_climateParms_writeHeader(n,ftn,dimID,met_dimID,monthID)
+    call LDT_glacierfrac_writeHeader(n,ftn,dimID)
+
+
+
 
 ! - Forcing-specific parameter headers
     call LDT_forcingParms_writeHeader(n,ftn,dimID,met_dimID)
@@ -2259,6 +2274,7 @@ contains
     call LDT_routingparams_writeHeader(n,ftn,dimID,monthID)
     call LDT_irrigation_writeHeader(n,ftn,dimID)
     call LDT_climateParms_writeHeader(n,ftn,dimID,met_dimID,monthID)
+    call LDT_glacierfrac_writeHeader(n,ftn,dimID)
 
 ! - Forcing-specific parameter headers
     call LDT_forcingParms_writeHeader(n,ftn,dimID,met_dimID)
@@ -2276,7 +2292,7 @@ contains
 ! 
 ! !DESCRIPTION: 
 ! 
-!  This routine writes the parameter data to file
+! This routine writes the parameter data to file
 !  in the standard preprocessing mode for LIS. 
 !EOP
 
@@ -2299,6 +2315,7 @@ contains
     call LDT_routingparams_writeData(n,ftn)
     call LDT_irrigation_writeData(n,ftn)
     call LDT_climateParms_writeData(n,ftn)
+    call LDT_glacierfrac_writeData(n,ftn)
 
 ! - Forcing-specific data
     call LDT_forcingParms_writeData(n,ftn)
@@ -2348,6 +2365,8 @@ contains
     call LDT_routingparams_writeData(n,ftn)
     call LDT_irrigation_writeData(n,ftn)
     call LDT_climateParms_writeData(n,ftn)
+    call LDT_glacierfrac_writeData(n,ftn)
+
 
 ! - Forcing-specific data
     call LDT_forcingParms_writeData(n,ftn)
@@ -2456,7 +2475,7 @@ contains
         LDT_LSMparam_struc(n)%landcover%standard_name = &
             "AVHRR UMD landcover map"
 
-      case( "MODIS_Native", "MODIS_LIS" )
+      case( "MODIS_Native", "MODIS_LIS", "MCD12Q1" )
         LDT_rc%lc_type(n) = "IGBPNCEP"
         LDT_LSMparam_struc(n)%landcover%num_bins = 20
         LDT_LSMparam_struc(n)%landcover%standard_name = &
@@ -2516,6 +2535,18 @@ contains
         LDT_LSMparam_struc(n)%landcover%num_bins = 36
         LDT_LSMparam_struc(n)%landcover%standard_name = &
             "CLM-4.5 PFT and landunits landcover map"
+
+      case( "NALCMS_SM" )
+        LDT_rc%lc_type(n) = "NALCMS_SM"
+        LDT_LSMparam_struc(n)%landcover%num_bins = 24
+        LDT_LSMparam_struc(n)%landcover%standard_name = &
+            "SnowModel-mapped NALCMS landcover classes map"
+
+      case( "NALCMS_SM_IGBPNCEP" )
+        LDT_rc%lc_type(n) = "NALCMS_SM_IGBPNCEP"
+        LDT_LSMparam_struc(n)%landcover%num_bins = 20
+        LDT_LSMparam_struc(n)%landcover%standard_name = &
+            "NALCMS/SnowModel landcover classes mapped to IGBP/NCEP"
 
       case( "CONSTANT" ) 
         LDT_LSMparam_struc(n)%landcover%num_bins = 13

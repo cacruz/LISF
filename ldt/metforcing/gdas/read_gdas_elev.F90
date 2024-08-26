@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -90,7 +96,7 @@ subroutine read_gdas_elev(n, findex, gdaselev, elevdiff)
 !- Check initially if file exists:
   inquire( file=gdas_struc(n)%elevfile, exist=file_exists )   ! Check if file exists
   if (.not. file_exists)  then
-     write(LDT_logunit,*) "GDAS elevation file missing: ",gdas_struc(n)%elevfile
+     write(LDT_logunit,*) "GDAS elevation file missing: ",trim(gdas_struc(n)%elevfile)
   endif
   write(LDT_logunit,*) "Opening/reading GDAS elev file:: ",trim(gdas_struc(n)%elevfile)
 

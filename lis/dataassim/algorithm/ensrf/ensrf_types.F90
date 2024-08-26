@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 ! 
 !BOP
@@ -13,7 +19,9 @@
 !   reichle, 19 Jul 2005
 !EOP 
 module ensrf_types  
-  
+
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
+
   implicit none
   save
   
@@ -55,10 +63,10 @@ module ensrf_types
      logical          :: scale     ! scale yes/no?
      logical          :: getinnov  ! compute innovations? (.T. if assim==.T.)
      real             :: nodata    ! no-data-value
-     character(200)   :: path      ! path to measurements file 
+     character(len=LIS_CONST_PATH_LEN) :: path      ! path to measurements file 
      character(80)    :: name      ! name identifier for measurements 
-     character(200)   :: scalepath ! path to file with scaling parameters
-     character(80)    :: scalename ! filename for scaling parameters
+     character(len=LIS_CONST_PATH_LEN) :: scalepath ! path to file with scaling parameters
+     character(len=LIS_CONST_PATH_LEN) :: scalename ! filename for scaling parameters
      real             :: std       ! default obs error std
 
      real             :: std_normal_max  ! see pert_param_type

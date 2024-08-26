@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LVT_misc.h"
 !BOP
 ! 
@@ -80,9 +86,9 @@ subroutine readLPRMvodobs(source)
      call create_LPRM_vodfilename(&
           LPRM_vodobs(source)%odir,&
           LPRM_vodobs(source)%data_designation,&
-          LVT_rc%yr,&
-          LVT_rc%mo,&
-          LVT_rc%da,&
+          LVT_rc%dyr(source),&
+          LVT_rc%dmo(source),&
+          LVT_rc%dda(source),&
           lprm_filename)
 
      inquire(file=lprm_filename,exist=file_exists)

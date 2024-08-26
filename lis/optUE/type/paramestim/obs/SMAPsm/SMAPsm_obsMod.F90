@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -60,6 +62,7 @@ contains
     use LIS_logMod
     use map_utils
     use LIS_timeMgrMod
+    use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
     implicit none 
 
@@ -76,9 +79,9 @@ contains
     integer                   ::  n 
     type(ESMF_ArraySpec)      ::  realarrspec
     type(ESMF_Field)          ::  obsField
-    character*100             ::  obsdir
+    character(len=LIS_CONST_PATH_LEN) ::  obsdir
     character*100             ::  vname
-    character*100             ::  obsAttribFile(LIS_rc%nnest)
+    character(len=LIS_CONST_PATH_LEN) ::  obsAttribFile(LIS_rc%nnest)
     integer                 :: k
     integer                 :: ftn
     integer                 :: status

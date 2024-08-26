@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_laisaiMod
@@ -31,6 +37,7 @@ module LDT_laisaiMod
   use LDT_historyMod
   use LDT_paramDataMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_paramMaskCheckMod
 
   implicit none
@@ -53,14 +60,14 @@ module LDT_laisaiMod
      real                   :: laisai_gridDesc(20)
      character*50           :: laisai_proj
      character*50           :: laisai_gridtransform
-     character*100          :: laidir
-     character*100          :: saidir
-     character*140          :: laifile
-     character*140          :: saifile
+     character(len=LDT_CONST_PATH_LEN)          :: laidir
+     character(len=LDT_CONST_PATH_LEN)          :: saidir
+     character(len=LDT_CONST_PATH_LEN)          :: laifile
+     character(len=LDT_CONST_PATH_LEN)          :: saifile
      character*20           :: laisaiInterval
 
-     character*140          :: laimaxfile
-     character*140          :: laiminfile
+     character(len=LDT_CONST_PATH_LEN)          :: laimaxfile
+     character(len=LDT_CONST_PATH_LEN)          :: laiminfile
 
      type(LDT_paramEntry) :: lai         ! Leaf area-index (LAI)
      type(LDT_paramEntry) :: laimin      ! Min. LAI (@pixel)
@@ -400,9 +407,11 @@ contains
                 LDT_laisai_struc(n)%laifile = trim(laidir(n))
                 write(LDT_logunit,*) "Reading single-file, monthly climatologies for: "&
                      //trim(LDT_laisai_struc(n)%laifile)
+                !call readlai( trim(LDT_laisai_struc(n)%lai%source)//char(0),&
+                !     n, LDT_laisai_struc(n)%lai%value, &
+                !     LDT_LSMparam_struc(n)%landmask%value )
                 call readlai( trim(LDT_laisai_struc(n)%lai%source)//char(0),&
-                     n, LDT_laisai_struc(n)%lai%value, &
-                     LDT_LSMparam_struc(n)%landmask%value )
+                     n, LDT_laisai_struc(n)%lai%value)
                 write(LDT_logunit,*) "Done reading file - "//&
                      trim(LDT_laisai_struc(n)%laifile)
                 

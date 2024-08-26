@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -26,6 +28,7 @@ module NLDAS_routingMod
 ! 
 ! !USES: 
   use ESMF
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
   implicit none
   
@@ -59,7 +62,7 @@ module NLDAS_routingMod
 
      character*100    :: initial_1
      character*100    :: initial_2
-     character*100    :: rstfile
+     character(len=LIS_CONST_PATH_LEN) :: rstfile
      real, allocatable    :: area(:,:)
 
      integer          :: numout
@@ -94,7 +97,7 @@ contains
     integer              :: ftn 
     integer              :: status
     character*100        :: uh_file_1, uh_file_2
-    character*100        :: order_file
+    character(len=LIS_CONST_PATH_LEN) :: order_file
     integer              :: i,j,k
     integer              :: yr, mo, da, hr, mn, ss
     type(ESMF_Grid)      :: global_grid

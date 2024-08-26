@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 !
@@ -41,7 +47,7 @@ subroutine readcrd_mrms_grib()
     call ESMF_ConfigGetAttribute(LIS_config, mrms_grib_struc(n)%mrms_grib_dir,rc=rc)
 
     write(LIS_logunit,*) 'Using MRMS forcing'
-    write(LIS_logunit,*) 'MRMS forcing directory: ', mrms_grib_struc(n)%MRMS_GRIB_DIR
+    write(LIS_logunit,*) 'MRMS forcing directory: ', trim(mrms_grib_struc(n)%MRMS_GRIB_DIR)
 
     !- Setting observed precip times to zero to ensure data is read in
     !   at first time step

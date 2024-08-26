@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LVT_misc.h"
 !BOP
 ! 
@@ -15,7 +21,6 @@ module LVT_statsMod
   use netcdf
 #endif
   use grib_api
-  use ESMF
   use LVT_coreMod
   use LVT_timeMgrMod
   use LVT_histDataMod
@@ -148,7 +153,8 @@ contains
 ! interval for anomaly metrics calculations
     if((LVT_metrics%anomaly%selectOpt.gt.0).or.&
          (LVT_metrics%acorr%selectOpt.gt.0).or.&
-         (LVT_metrics%armse%selectOpt.gt.0)) then 
+         (LVT_metrics%armse%selectOpt.gt.0).or.&
+         (LVT_metrics%arnkcorr%selectOpt.gt.0)) then 
        call ESMF_ConfigGetAttribute(LVT_config,&
             anomalyTwindow,&
             label="Averaging window for computing mean values in anomaly calculations:",rc=rc)
@@ -210,6 +216,13 @@ contains
        LVT_rc%scname(2) = 'MAM'
        LVT_rc%scname(3) = 'JJA'
        LVT_rc%scname(4) = 'SON'      
+    elseif(LVT_rc%scInterval.eq.21) then
+       LVT_rc%nasc = 4 ! =12/3
+       allocate(LVT_rc%scname(LVT_rc%nasc))
+       LVT_rc%scname(1) = 'JFM'
+       LVT_rc%scname(2) = 'AMJ'
+       LVT_rc%scname(3) = 'JAS'
+       LVT_rc%scname(4) = 'OND'
     elseif(LVT_rc%scInterval.eq.6) then 
        LVT_rc%nasc = 2 ! =12/6
        allocate(LVT_rc%scname(LVT_rc%nasc))
@@ -218,7 +231,7 @@ contains
     elseif(LVT_rc%scInterval.eq.12) then 
        LVT_rc%nasc = 1
        allocate(LVT_rc%scname(LVT_rc%nasc))
-       LVT_rc%scname(2) = 'YYR'
+       LVT_rc%scname(1) = 'YYR'
     endif
 ! The average diurnal cycle will be resolved at the stats
 ! output frequency
@@ -285,6 +298,7 @@ contains
        call registerMetricEntry(LVT_ETSId,LVT_metrics%ETS)
        call registerMetricEntry(LVT_RCORRId,LVT_metrics%RCORR)
        call registerMetricEntry(LVT_RNKCORRId,LVT_metrics%RNKCORR)
+       call registerMetricEntry(LVT_ARNKCORRId,LVT_metrics%ARNKCORR)
        call registerMetricEntry(LVT_ACORRId,LVT_metrics%ACORR)
        call registerMetricEntry(LVT_ARMSEId,LVT_metrics%ARMSE)
        call registerMetricEntry(LVT_NSEId,LVT_metrics%NSE)
@@ -320,6 +334,11 @@ contains
        call registerMetricEntry(LVT_THBId,LVT_metrics%thb)
        call registerMetricEntry(LVT_TMBId,LVT_metrics%tmb)
        call registerMetricEntry(LVT_TFBId,LVT_metrics%tfb)
+       call registerMetricEntry(LVT_IEId,LVT_metrics%ie)
+       call registerMetricEntry(LVT_CEId,LVT_metrics%ce)
+       call registerMetricEntry(LVT_REId,LVT_metrics%re)
+       call registerMetricEntry(LVT_JEId,LVT_metrics%je)
+       call registerMetricEntry(LVT_miId,LVT_metrics%mi)
 
        LVT_rc%metric_sindex = LVT_METRIC_SINDEX
        LVT_rc%metric_eindex = LVT_METRIC_EINDEX
@@ -470,6 +489,8 @@ contains
   subroutine initMetricFiles(metric)
 ! 
 ! !USES:   
+    use ESMF
+
     implicit none
 !
 ! !INPUT PARAMETERS: 
@@ -579,7 +600,7 @@ contains
                    call system('mv temp '//trim(filename))
 
                    open(metric%ftn_ts_loc(i,m),file=(filename),&
-                        ACCESS = 'APPEND',form='formatted')
+                        position = 'APPEND',form='formatted')
                 endif
              enddo
           end do
@@ -644,7 +665,7 @@ contains
                 call system('mv temp '//trim(filename))
 
                 open(metric%ftn_ts_loc(i,1),file=(filename),&
-                     ACCESS = 'APPEND',form='formatted')
+                     position = 'APPEND',form='formatted')
              end if
           enddo
        end if
@@ -721,6 +742,16 @@ contains
        allocate(stats%vid_count_ts(LVT_NMETRICS,20))
        allocate(stats%vid_sc_total(LVT_rc%nasc,LVT_NMETRICS,20))
        allocate(stats%vid_adc_total(LVT_rc%nadc,LVT_NMETRICS,20))
+
+       ! EMK For anomaly climatology
+       allocate(stats%vid_ts_climo(LVT_NMETRICS,20))
+       allocate(stats%vid_count_ts_climo(LVT_NMETRICS,20))
+       allocate(stats%vid_total_climo(LVT_NMETRICS,20))
+       allocate(stats%vid_count_total_climo(LVT_NMETRICS,20))
+       allocate(stats%vid_sc_total_climo(LVT_rc%nasc,LVT_NMETRICS,20))
+       allocate(stats%vid_count_sc_total_climo(LVT_rc%nasc,LVT_NMETRICS,20))
+       allocate(stats%vid_adc_total_climo(LVT_rc%nadc,LVT_NMETRICS,20))
+       allocate(stats%vid_count_adc_total_climo(LVT_rc%nadc,LVT_NMETRICS,20))
 
        do m=LVT_rc%metric_sindex,LVT_rc%metric_eindex
           if(LVT_metricsPtr(m)%metricEntryPtr%selectOpt.gt.0) then
@@ -878,6 +909,7 @@ contains
   subroutine LVT_computeStats(pass)
 ! 
 ! !USES:   
+    use ESMF
     use LVT_timeMgrMod,      only : LVT_calendar
     use LVT_DataStreamsMod  
 
@@ -1170,6 +1202,8 @@ contains
        varname, ci)
 ! 
 ! !USES:   
+   use ESMF
+
    implicit none
 !
 ! !INPUT PARAMETERS: 
@@ -1655,6 +1689,7 @@ contains
   subroutine createTSfiles(pass, metric)
 ! 
 ! !USES:   
+    use ESMF
     use LVT_timeMgrMod,  only : LVT_tick
 
 !
@@ -1943,8 +1978,32 @@ contains
                      "-",stats%vid_count_ts(m,2),&
                      model%selectNlevs, LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
                      count+1)         
-             endif             
-          endif
+             endif
+
+             ! EMK Write anomaly climo
+             if (m .eq. LVT_ANOMALYid) then
+                call LVT_writevar_data_header( &
+                     LVT_metricsPtr(m)%metricEntryPtr%ftn_ts, &
+                     LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out, &
+                     trim(short_name_ds1)//"_climo", &
+                     trim(standard_name)//" climatology", &
+                     trim(long_name)//" climatology", &
+                     units, &
+                     stats%vid_ts_climo(m,1), model%selectNlevs, &
+                     LVT_metricsPtr(m)%metricEntryPtr%nLevs, count+1)
+
+                call LVT_writevar_data_header( &
+                     LVT_metricsPtr(m)%metricEntryPtr%ftn_ts, &
+                     LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out, &
+                     "COUNT_"//trim(short_name_ds1)//"_climo",  &
+                     "COUNT_"//trim(standard_name)//" climatology", &
+                     "Number of points of "//trim(long_name)//" climatology", &
+                     "-", stats%vid_count_ts_climo(m,1), &
+                     model%selectNlevs, &
+                     LVT_metricsPtr(m)%metricEntryPtr%nLevs, &
+                     count+1)
+             end if
+          end if
        enddo
        count = count+1
     endif
@@ -2198,7 +2257,43 @@ contains
                            stats%units, stats%vid_count_total(m,(i-1)*2+1),&
                            model%selectNlevs, &
                            LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
-                           count+1+(i-1))        
+                           count+1+(i-1))
+
+                      ! EMK Anomaly climo. We only write climo here
+                      ! if the data are stored in a single time level.
+                      ! Seasonal cycles are handled further down.
+                      if (m .eq. LVT_ANOMALYid .and. &
+                          LVT_rc%anomalyTlength .ne. 12) then
+
+                         call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              trim(stats%short_name)//'_'//&
+                              trim(LVT_metricsPtr(m)%metricEntryPtr%mName(i))//&
+                              "_climo",&
+                           (stats%standard_name)//" climatology",&
+                           (stats%long_name)//" climatology",&
+                           (stats%units),&
+                           stats%vid_total_climo(m,(i-1)*2+1), &
+                           model%selectNlevs, &
+                           LVT_metricsPtr(m)%metricEntryPtr%nLevs, &
+                           count+(i-1))
+                      call LVT_writevar_data_header(&
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                           'COUNT_'//trim(stats%short_name)//'_'//&
+                           trim(LVT_metricsPtr(m)%metricEntryPtr%mName(i))//&
+                           "_climo", &
+                           trim(stats%standard_name)//" climatology",&
+                           trim(stats%long_name)//"climatology",&
+                           stats%units, &
+                           stats%vid_count_total_climo(m,(i-1)*2+1),&
+                           model%selectNlevs, &
+                           LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
+                           count+1+(i-1))
+
+                      end if
+
                       if(LVT_metricsPtr(m)%metricEntryPtr%obsData) then 
                          call LVT_writevar_data_header(&
                               LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
@@ -2223,6 +2318,44 @@ contains
                               model%selectNlevs, &
                               LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
                               count+3+(i-1))        
+
+
+                         ! EMK Anomaly climo.  Only write here if
+                         ! data are for single time level.
+                         if (m .eq. LVT_ANOMALYid .and. &
+                              LVT_rc%anomalyTlength .ne. 12) then
+
+                            call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              "OBS_"//trim(stats%short_name)//'_'//&
+                              trim(LVT_metricsPtr(m)%metricEntryPtr%mName(i))//&
+                              "_climo",&
+                              trim(obs%standard_name)//" climatology", &
+                              "Observations of "//trim(obs%long_name) &
+                              //" climatology", &
+                              trim(stats%units),&
+                              stats%vid_total_climo(m,(i-1)*2+2), &
+                              model%selectNlevs,&
+                              LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
+                              count+2+(i-1))
+                         call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              "COUNT_OBS_"//trim(stats%short_name)//'_'//&
+                              trim(LVT_metricsPtr(m)%metricEntryPtr%mName(i))//&
+                              "_climo", &
+                              "COUNT_OBS_"//trim(stats%standard_name)// &
+                              " climatology",&
+                              "Number of observation points of "//&
+                              trim(stats%long_name)// "climatology",&
+                              stats%units, &
+                              stats%vid_count_total_climo(m,(i-1)*2+2),&
+                              model%selectNlevs, &
+                              LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
+                              count+3+(i-1))        
+
+                         end if
                          
                       endif
                    enddo
@@ -2283,6 +2416,36 @@ contains
                            model%selectNlevs, &
                            LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)         
                    endif
+
+                   ! EMK Anomaly climo. Only written here if data are
+                   ! in single time layer
+                   if (m .eq. LVT_ANOMALYid .and. &
+                       LVT_rc%anomalyTlength .ne. 12) then
+                      kk = kk + 1
+                      call LVT_writevar_data_header(&
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                           trim(short_name_ds1)//"_climo", &
+                           trim(standard_name)//" climatology", &
+                           trim(long_name)//" climatology", &
+                           units,&
+                           stats%vid_total_climo(m,1), model%selectNlevs, &
+                           LVT_metricsPtr(m)%metricEntryPtr%nLevs,&
+                           count)
+                      kk= kk+1
+                      call LVT_writevar_data_header(&
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                           LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                           "COUNT_"//trim(short_name_ds1)//"_climo",&
+                           "COUNT_"//trim(standard_name)//" climatology",&
+                           "Number of points in "//trim(long_name)&
+                           //" climatology",&
+                           "-",stats%vid_count_total_climo(m,1), &
+                           model%selectNlevs,&
+                           LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)
+
+                   end if
+                   
                    if(LVT_metricsPtr(m)%metricEntryPtr%obsdata) then 
                       kk = kk + 1
                       call LVT_writevar_data_header(&
@@ -2301,9 +2464,39 @@ contains
                            "COUNT_"//trim(obs%standard_name),&
                            "Number of observation points of "//trim(obs%long_name),&
                            "-",stats%vid_count_total(m,2), model%selectNlevs,&
-                           LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)        
+                           LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)
+
+                      ! EMK Anomaly climo. Only written here if data are
+                      ! in single time layer
+                      if (m .eq. LVT_ANOMALYid .and. &
+                           LVT_rc%anomalyTlength .ne. 12) then
+                         kk = kk + 1
+                         call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              trim(short_name_ds2)//"_climo", &
+                              trim(obs%standard_name)//" climatology", &
+                              "Observations of "//trim(obs%long_name)// &
+                              " climatology", &
+                              trim(stats%units), &
+                              stats%vid_total_climo(m,2), model%selectNlevs,&
+                              LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)
+                         kk= kk + 1
+                         call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              "COUNT_"//trim(short_name_ds2)//"_climo",&
+                              "COUNT_"//trim(obs%standard_name)// &
+                              " climatology",&
+                              "Number of observation points of "// &
+                              trim(obs%long_name)//" climatology",&
+                              "-",stats%vid_count_total_climo(m,2), &
+                              model%selectNlevs,&
+                              LVT_metricsPtr(m)%metricEntryPtr%nLevs,kk)
+                      end if
                    endif
-                   
+
+
                    if(LVT_metricsPtr(m)%metricEntryPtr%computeSC.eq.1) then 
                       do k=1, LVT_rc%nasc
                          kk = kk+k
@@ -2338,6 +2531,28 @@ contains
                          enddo
                       endif
                    endif
+
+                   ! EMK Add anomaly climatology
+                   if (LVT_metricsPtr(m)%metricEntryPtr%computeSC.eq.1 .and. &
+                        m .eq. LVT_ANOMALYid) then
+                      do k = 1, LVT_rc%nasc
+                         kk = kk + k
+                         call LVT_writevar_data_header( &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out, &
+                              trim(short_name_ds1)//'_'// &
+                              trim(LVT_rc%scname(k))//'_climo', &
+                              trim(standard_name)//'_'// &
+                              trim(LVT_rc%scname(k)//' climatology'), &
+                              'Seasonal cycle '//trim(long_name)//'_'// &
+                              trim(LVT_rc%scname(k))//' climatology', &
+                              trim(stats%units), &
+                              stats%vid_sc_total_climo(k,m,1), &
+                              model%selectNlevs, &
+                              LVT_metricsPtr(m)%metricEntryPtr%nLevs, kk)
+                      end do
+                   end if
+
                    if(LVT_metricsPtr(m)%metricEntryPtr%computeADC.eq.1) then 
                       do k=1, LVT_rc%nadc
                          kk = kk+k
@@ -2370,6 +2585,27 @@ contains
                          enddo
                       endif
                    endif
+
+                   ! EMK Add anomaly climatology
+                   if (LVT_metricsPtr(m)%metricEntryPtr%computeADC.eq.1 .and. &
+                        m .eq. LVT_ANOMALYid) then
+                      do k = 1, LVT_rc%nadc
+                         kk = kk + k
+                         call LVT_writevar_data_header(&
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_total, &
+                              LVT_metricsPtr(m)%metricEntryPtr%ftn_meta_out,&
+                              trim(short_name_ds1)//"_"// &
+                              trim(LVT_rc%adcname(k))//"_climo", &
+                              trim(standard_name)//'_'// &
+                              trim(LVT_rc%adcname(k))//' climatology', &
+                              trim(long_name)//'_'// &
+                              trim(LVT_rc%adcname(k))//' climatology', &
+                              trim(stats%units), &
+                              stats%vid_adc_total_climo(k,m,1), &
+                              1, LVT_metricsPtr(m)%metricEntryPtr%nLevs, kk)
+                      end do
+                   end if
+                   
                 endif
              endif
           endif           

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module chirps2_forcingMod
 !BOP
@@ -47,6 +53,7 @@ module chirps2_forcingMod
 
 ! !USES:
   use ESMF
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
   PRIVATE
@@ -68,7 +75,7 @@ module chirps2_forcingMod
      integer            :: nc
      integer            :: nr
      integer            :: mi
-     character*80       :: directory  
+     character(len=LDT_CONST_PATH_LEN) :: directory  
      real*8             :: chirpstime1, chirpstime2
      logical            :: reset_flag 
 
@@ -114,7 +121,6 @@ contains
                             LDT_getNextUnitNumber, &
                             LDT_releaseUnitNumber, LDT_verify 
     use LDT_gridmappingMod
-    use ESMF
 
     implicit none
 

@@ -1,23 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LDT)
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! See RELEASE_NOTES.txt for more information.
-!
-! The LDT source code and documentation are not in the public domain
-! and may not be freely distributed.  Only qualified entities may receive 
-! the source code and documentation. 
-!
-! Qualified entities must be covered by a Software Usage Agreement. 
-! The Software Usage Agreement contains all the terms and conditions
-! regarding the release of the LDT software.
-!
-! NASA GSFC MAKES NO REPRESENTATIONS ABOUT THE SUITABILITY OF THE
-! SOFTWARE FOR ANY PURPOSE.  IT IS PROVIDED AS IS WITHOUT EXPRESS OR
-! IMPLIED WARRANTY.  NEITHER NASA GSFC NOR THE US GOVERNMENT SHALL BE
-! LIABLE FOR ANY DAMAGES SUFFERED BY THE USER OF THIS SOFTWARE.
-!
-! See the Software Usage Agreement for the full disclaimer of warranty.
-!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -83,7 +71,7 @@ subroutine read_nam242_elev(n, findex, nam242elev, elevdiff)
   lb = .true.
   lb_regrid = .true.
 
-  write(LDT_logunit,*) 'Reading the NAM elevation ',nam242_struc(n)%elevfile
+  write(LDT_logunit,*) 'Reading the NAM elevation ',trim(nam242_struc(n)%elevfile)
      
   call grib_open_file(ftn,trim(nam242_struc(n)%elevfile),'r',iret)
   call LDT_verify(iret,'error grib_open_file in read_nam242_elev')

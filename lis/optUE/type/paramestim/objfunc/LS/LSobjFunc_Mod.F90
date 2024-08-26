@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -58,6 +60,7 @@ contains
     use LIS_logMod,          only : LIS_logunit, LIS_getNextUnitNumber, &
          LIS_releaseUnitNumber, LIS_endrun, LIS_verify
     use LIS_PE_HandlerMod,   only : LIS_PEOBS_State
+    use LIS_constantsMod,    only : LIS_CONST_PATH_LEN
 ! 
 ! !DESCRIPTION:
 !  This method initializes the objects to be used in the least square 
@@ -74,7 +77,7 @@ contains
     type(ESMF_Field)     :: nummodelvField
     real,    pointer     :: numobs(:), nummodelv(:)
     real,    pointer     :: objfunc(:),modelv(:)
-    character*100        :: LSweightsFile  !link to lis.config entry for optUE
+    character(len=LIS_CONST_PATH_LEN) :: LSweightsFile  !link to lis.config entry for optUE
     character*100        :: obj_name_temp
     character*200          :: line
     integer              :: n, nobjs, k, i, j 
@@ -103,7 +106,7 @@ contains
 
        ftn = LIS_getNextUnitNumber()
        write(LIS_logunit,*) '[INFO] Reading Least Squares objective function weights ...', &
-            LSweightsFile
+            trim(LSweightsFile)
        open(ftn,file=trim(LSweightsFile),status='old')
        read(ftn,*)  !demarcate section
        do k=1, ls_ctl%nobjs

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 #include "LDT_NetCDF_inc.h"
@@ -238,6 +244,7 @@ module LDT_historyMod
      module procedure writevar_gridded_real_2d
      module procedure writevar_gridded_real_3d
      module procedure writevar_gridded_real_4d
+     module procedure writevar_gridded_integer_1d  !Y.Kwon
 
 ! !DESCRIPTION:
 ! This interface provides routines for writing variables (real)
@@ -323,7 +330,7 @@ contains
           call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"missing_value", -9999.0))          
 
           !grid information
-          if(trim(LDT_rc%lis_map_proj).eq."latlon") then !latlon
+          if(trim(LDT_rc%lis_map_proj(n)).eq."latlon") then !latlon
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
                   "EQUIDISTANT CYLINDRICAL"))
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -335,7 +342,7 @@ contains
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
                   LDT_rc%gridDesc(n,10)))       
 
-          elseif(trim(LDT_rc%lis_map_proj).eq."mercator") then 
+          elseif(trim(LDT_rc%lis_map_proj(n)).eq."mercator") then 
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
                   "MERCATOR"))
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -351,7 +358,7 @@ contains
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
                   LDT_rc%gridDesc(n,9)))
 
-          elseif(trim(LDT_rc%lis_map_proj).eq."lambert") then !lambert conformal
+          elseif(trim(LDT_rc%lis_map_proj(n)).eq."lambert") then !lambert conformal
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
                   "LAMBERT CONFORMAL"))
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -369,7 +376,7 @@ contains
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"DY", &
                   LDT_rc%gridDesc(n,9)))
              
-          elseif(trim(LDT_rc%lis_map_proj).eq."polar") then ! polar stereographic
+          elseif(trim(LDT_rc%lis_map_proj(n)).eq."polar") then ! polar stereographic
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"MAP_PROJECTION", &
                   "POLAR STEREOGRAPHIC"))
              call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"SOUTH_EAST_CORNER_LAT", &
@@ -1655,6 +1662,57 @@ contains
 
   end subroutine writevar_gridded_real_2d
 
+!Y.Kwon
+!BOP
+! !ROUTINE: writevar_gridded_integer_1d
+! \label{writevar_gridded_integer_1d}
+! 
+! !INTERFACE:
+! Private name: call LDT_writevar_gridded
+  subroutine writevar_gridded_integer_1d(n,ftn, var, varid )
+! !USES:
+    use LDT_coreMod, only : LDT_rc,LDT_domain, &
+         LDT_localPet, LDT_masterproc, LDT_npes, &
+         LDT_nss_ind,LDT_nse_ind,LDT_ews_ind,LDT_ewe_ind, &
+         LDT_nss_halo_ind,LDT_nse_halo_ind,LDT_ews_halo_ind,LDT_ewe_halo_ind, &
+         LDT_gdeltas, LDT_goffsets
+
+    implicit none
+! !ARGUMENTS: 
+    integer, intent(in) :: n
+    integer, intent(in)             :: ftn
+    integer                         :: var(LDT_rc%ngrid(n))
+    integer                         :: varid
+
+! !DESCRIPTION:
+!  Writes an integer variable to a binary 
+!  sequential access, gridded file as either 1-dimensional gridded field. 
+!  (The 1-d gridded field consists of a vector of valid land points)
+!  After reading the global data, the routine subroutine subsets
+!  the data for each processor's domain.
+!
+!  The arguments are: 
+!  \begin{description}
+!   \item [n]
+!     index of the domain or nest.
+!   \item [ftn]
+!     unit number of the binary output file
+!   \item [var]
+!     variables being written, dimensioned in the tile space
+!  \end{description}
+!EOP
+    integer       :: iret
+
+#if(defined USE_NETCDF3 || defined USE_NETCDF4) 
+
+    iret = nf90_put_var(ftn,varid,var,(/1/),&
+         (/LDT_rc%glbngrid(n)/))
+    call LDT_verify(iret, 'nf90_put_var failed in writevar_gridded_integer_1d')
+
+#endif
+
+end subroutine writevar_gridded_integer_1d
+
 !BOP
 ! !ROUTINE: LDT_tile2grid
 ! \label{LDT_tile2grid}
@@ -2603,7 +2661,7 @@ subroutine gather_gridded_vector_output(n, gtmp, var)
        
        do r=1,LDT_rc%lnr(n)
           do c=1,LDT_rc%lnc(n)
-             if(LDT_rc%datamask(c,r).ne.1) then 
+             if(LDT_domain(n)%datamask(c,r).ne.1) then 
                 value2d(c,r) = LDT_rc%udef
              endif
           enddo
@@ -2625,7 +2683,7 @@ subroutine gather_gridded_vector_output(n, gtmp, var)
               
        do r=1,LDT_rc%lnr(n)
           do c=1,LDT_rc%lnc(n)
-             if(LDT_rc%datamask(c,r).ne.1) then 
+             if(LDT_domain(n)%datamask(c,r).ne.1) then 
                 value2d(c,r) = LDT_rc%udef
              else
                 gid = LDT_domain(n)%gindex(c,r)
@@ -2701,7 +2759,7 @@ subroutine gather_gridded_vector_output(n, gtmp, var)
        
        do r=1,LDT_rc%lnr(n)
           do c=1,LDT_rc%lnc(n)
-             if(LDT_rc%datamask(c,r).ne.1) then 
+             if(LDT_domain(n)%datamask(c,r).ne.1) then 
                 value2d(c,r) = LDT_rc%udef
              endif
           enddo
@@ -2723,7 +2781,7 @@ subroutine gather_gridded_vector_output(n, gtmp, var)
               
        do r=1,LDT_rc%lnr(n)
           do c=1,LDT_rc%lnc(n)
-             if(LDT_rc%datamask(c,r).ne.1) then 
+             if(LDT_domain(n)%datamask(c,r).ne.1) then 
                 value2d(c,r) = LDT_rc%udef
              else
                 gid = LDT_domain(n)%gindex(c,r)

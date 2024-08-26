@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -19,6 +21,7 @@ subroutine read_MaconLSObsdata(Obj_Space)
   use LIS_coreMod,  only : LIS_rc, LIS_domain
   use LIS_logMod,     only : LIS_logunit, LIS_verify, &
        LIS_getNextUnitNumber, LIS_releaseUnitNumber
+  use LIS_constantsMod,   only : LIS_CONST_PATH_LEN
   use LIS_fileIOMod,      only : LIS_readData
   use MaconLSDataMod, only : maconlsobs_struc
 
@@ -39,7 +42,7 @@ subroutine read_MaconLSObsdata(Obj_Space)
   real,    allocatable    :: lsobs(:,:)
   real,    pointer    :: obsl(:)
   type(ESMF_Field)    :: lsField
-  character*100       :: lsobsdir, name
+  character(len=LIS_CONST_PATH_LEN) :: lsobsdir, name
   logical             :: data_update
   logical             :: file_exists
   logical             :: readflag
@@ -76,7 +79,7 @@ subroutine read_MaconLSObsdata(Obj_Space)
   endif
   
   if (readflag) then 
-     write(LIS_logunit,*)  'Reading Landslide obs data ',name
+     write(LIS_logunit,*)  'Reading Landslide obs data ',trim(name)
      
      call ESMF_StateGet(Obj_Space,"Landslide data",lsField,&
           rc=status)

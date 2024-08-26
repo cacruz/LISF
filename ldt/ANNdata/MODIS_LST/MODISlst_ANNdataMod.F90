@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 ! !MODULE: MODISlst_ANNdataMod
 ! 
@@ -13,6 +19,7 @@ module MODISlst_ANNdataMod
 ! !USES: 
   use ESMF
   use map_utils
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
 
   implicit none
 
@@ -28,7 +35,7 @@ module MODISlst_ANNdataMod
 !EOP
   type, public :: MODISlstobsdec
 
-     character*100              :: odir
+     character(len=LDT_CONST_PATH_LEN) :: odir
      integer                    :: nc,nr
      integer, allocatable       :: n11(:)
      real                       :: gridDesc(50)
@@ -47,7 +54,6 @@ contains
 ! !INTERFACE: 
   subroutine MODISlst_ANNdatainit()
 ! !USES: 
-    use ESMF
     use LDT_coreMod
     use LDT_timeMgrMod
     use LDT_logMod

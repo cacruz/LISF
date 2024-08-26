@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !
 !BOP
 ! 
@@ -711,7 +717,7 @@ contains
           elseif(trim(model%short_name).eq."TWS") then 
              min_value = -10000
           else
-             min_value = 0.0 !soil moisture
+             min_value = -100.0 
           endif
 
           do t=1,LVT_rc%ngrid
@@ -920,7 +926,7 @@ contains
           elseif(trim(model%short_name).eq."TWS") then
              min_value = -10000
           else
-             min_value = 0.0 !soil moisture
+             min_value = -100.0
           endif
           
           do t=1,LVT_rc%ngrid

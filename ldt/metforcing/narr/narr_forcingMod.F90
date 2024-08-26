@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 module narr_forcingMod
 !BOP
@@ -8,6 +14,8 @@ module narr_forcingMod
 ! !DESCRIPTION: 
 !  
 ! !USES: 
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
+
   implicit none
   
   PRIVATE
@@ -26,7 +34,7 @@ module narr_forcingMod
      
      real             :: ts
      real*8           :: narrtime1,narrtime2
-     character*100    :: narrdir
+     character(len=LDT_CONST_PATH_LEN)    :: narrdir
      integer          :: nc,nr
      integer          :: mi
      integer          :: nlevels

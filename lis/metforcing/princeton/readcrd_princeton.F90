@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -63,7 +65,7 @@ subroutine readcrd_princeton()
   enddo
 
   do n=1,LIS_rc%nnest
-     write(LIS_logunit,*)'[INFO] PRINCETON forcing directory :',princeton_struc(n)%princetonDIR
+     write(LIS_logunit,*)'[INFO] PRINCETON forcing directory :',trim(princeton_struc(n)%princetonDIR)
      write(LIS_logunit,*)'[INFO] PRINCETON forcing version   :',princeton_struc(n)%version
      princeton_struc(n)%princetontime1 = 3000.0
      princeton_struc(n)%princetontime2 = 0.0

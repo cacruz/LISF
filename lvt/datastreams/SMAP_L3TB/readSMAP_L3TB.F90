@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LVT_misc.h"
 !BOP
 !
@@ -69,9 +75,9 @@ subroutine readSMAP_L3TB(source)
 !----------------------------------------------------------------------------------------------------------------
 ! create filename for 9 km product
 !----------------------------------------------------------------------------------------------------------------
-         write (yyyy, '(i4.4)') LVT_rc%yr
-         write (mm, '(i2.2)') LVT_rc%mo
-         write (dd, '(i2.2)') LVT_rc%da
+         write (yyyy, '(i4.4)') LVT_rc%dyr(source)
+         write (mm, '(i2.2)') LVT_rc%dmo(source)
+         write (dd, '(i2.2)') LVT_rc%dda(source)
          write (CRID, '(a)') SMAP_L3TB(source)%release_number
 
          list_files = 'ls '//trim(SMAP_L3TB(source)%odir)//'/'//trim(yyyy)//'.'//trim(mm)//'.'// &
@@ -103,17 +109,18 @@ subroutine readSMAP_L3TB(source)
 !----------------------------------------------------------------------------------------------------------------
 ! create filename for 36 km product
 !----------------------------------------------------------------------------------------------------------------
-         write (yyyy, '(i4.4)') LVT_rc%yr
-         write (mm, '(i2.2)') LVT_rc%mo
-         write (dd, '(i2.2)') LVT_rc%da
+         write (yyyy, '(i4.4)') LVT_rc%dyr(source)
+         write (mm, '(i2.2)') LVT_rc%dmo(source)
+         write (dd, '(i2.2)') LVT_rc%dda(source)
          write (CRID, '(a)') SMAP_L3TB(source)%release_number
 
-         list_files = 'ls '//trim(SMAP_L3TB(source)%odir)//'/'//trim(yyyy)//'.'//trim(mm)//'.'// &
-                      trim(dd)//'/SMAP_L3_SM_P_' &
-                      //trim(yyyy)//trim(mm)//trim(dd)//'_'// &
-                         trim(CRID)//'*.h5> SMAP_filelist'// &
-                         '.dat'
-
+         list_files = 'ls '//trim(SMAP_L3TB(source)%odir)//'/'&
+              //trim(yyyy)//'.'//trim(mm)//'.'// &
+              trim(dd)//'/SMAP_L3_SM_P_' &
+              //trim(yyyy)//trim(mm)//trim(dd)//'_'// &
+              trim(CRID)//'*.h5> SMAP_filelist'// &
+              '.dat'
+         
          call system(trim(list_files))
          ftn = LVT_getNextUnitNumber()
          open (ftn, file="./SMAP_filelist.dat", &
@@ -190,6 +197,8 @@ subroutine read_SMAP_L3Tb(source, fname, L3TB)
 
   implicit none
 
+  integer                        :: source 
+  character(len=*)               :: fname
   real                           :: L3TB(LVT_rc%lnc,LVT_rc%lnr,4)
   
 !
@@ -208,8 +217,6 @@ subroutine read_SMAP_L3Tb(source, fname, L3TB)
 
 #if (defined USE_HDF5)
 
-  integer                       :: source 
-  character(len=*)              :: fname
   character*100,   parameter    :: Tb_gr_name = "Soil_Moisture_Retrieval_Data"
   character*100,   parameter    :: Tbv_field_name = "soil_moisture"
 

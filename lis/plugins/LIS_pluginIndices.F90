@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -40,11 +42,12 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_RTMforwardId  = "RTM forward"
    character*50, public,  parameter :: LIS_agrmetrunId = "AGRMET ops"
    character*50, public,  parameter :: LIS_wrfcplId    = "WRF coupling"
+   character*50, public,  parameter :: LIS_nuopccplId  = "NUOPC coupling"
    character*50, public,  parameter :: LIS_gcecplId    = "GCE coupling"
    character*50, public,  parameter :: LIS_gfscplId    = "GFS coupling"
    character*50, public,  parameter :: LIS_paramEstimRunId = "parameter estimation"
    character*50, public,  parameter :: LIS_smootherDAId    = "ensemble smoother"
-   character*50, public,  parameter :: LIS_forecastrunId      = "forecast"
+   character*50, public,  parameter :: LIS_forecastrunId   = "forecast"
 !-------------------------------------------------------------------------
 ! Domains
 !-------------------------------------------------------------------------
@@ -71,6 +74,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_clm2Id      = "CLM.2"
    character*50, public,  parameter :: LIS_vic411Id    = "VIC.4.1.1"
    character*50, public,  parameter :: LIS_vic412Id    = "VIC.4.1.2"
+   character*50, public,  parameter :: LIS_AWRAL600Id    = "AWRAL.6.0.0"
    character*50, public,  parameter :: LIS_mosaicId    = "Mosaic"
    character*50, public,  parameter :: LIS_hyssibId    = "HySSIB"
    !character*50, public,  parameter :: LIS_sib2Id      = "SiB2"
@@ -85,10 +89,12 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_cableId     = "CABLE"
    character*50, public,  parameter :: LIS_fasstId     = "FASST"
    !character*50, public,  parameter :: LIS_sheelsId    = "SHEELS"
-   character*50, public,  parameter :: LIS_clsmf25Id   = "CLSM F2.5"
-   character*50, public,  parameter :: LIS_geowrsi2Id  = "GeoWRSI.2"
+   character*50, public,  parameter :: LIS_clsmf25Id    = "CLSM F2.5"
+   character*50, public,  parameter :: LIS_geowrsi2Id   = "GeoWRSI.2"
    character*50, public,  parameter :: LIS_rdhm356lsmId = "RDHM.3.5.6"
    character*50, public,  parameter :: LIS_summa1Id     = "SUMMA.1.0"
+   character*50, public,  parameter :: LIS_Crocus81Id   = "Crocus8.1"  
+   character*50, public,  parameter :: LIS_snowmodelId  = "SnowModel"
 
 !-------------------------------------------------------------------------
 ! Lake models
@@ -104,7 +110,7 @@ module LIS_pluginIndices
 !-------------------------------------------------------------------------
 ! Open water models
 !-------------------------------------------------------------------------
-   character*50, public,  parameter :: LIS_templateOpenWaterId    = "template open water"
+   character*50, public,  parameter :: LIS_templateOpenWaterId  = "template open water"
 
 !-------------------------------------------------------------------------
 ! Met forcings 
@@ -117,22 +123,19 @@ module LIS_pluginIndices
 
    character*50, public,  parameter :: LIS_gdasId            = "GDAS"
    character*50, public,  parameter :: LIS_gdasT1534Id       = "GDAS T1534"
-   character*50, public,  parameter :: LIS_geosId            = "GEOS"
    character*50, public,  parameter :: LIS_geos5fcstId       = "GEOS5 forecast"
    character*50, public,  parameter :: LIS_gefsId            = "GEFS forecast"
    character*50, public,  parameter :: LIS_ecmwfId           = "ECMWF"
    character*50, public,  parameter :: LIS_gswp1Id           = "GSWP1"
    character*50, public,  parameter :: LIS_gswp2Id           = "GSWP2"
-   character*50, public,  parameter :: LIS_ecmwfreanalId     = "ECMWF reanalysis"
    character*50, public,  parameter :: LIS_agrmetId          = "AGRMET"
    character*50, public,  parameter :: LIS_princetonId       = "PRINCETON"
-   character*50, public,  parameter :: LIS_nldas1Id          = "NLDAS1"
-   character*50, public,  parameter :: LIS_nldas2Id          = "NLDAS2"
-
+   character*50, public,  parameter :: LIS_nldas2Id          = "NLDAS2 grib"
+   character*50, public,  parameter :: LIS_nldas20Id         = "NLDAS2 netcdf"
    character*50, public,  parameter :: LIS_gldasId           = "GLDAS"
    character*50, public,  parameter :: LIS_gfsId             = "GFS"
-   character*50, public,  parameter :: LIS_merralandId       = "MERRA-Land"
    character*50, public,  parameter :: LIS_merra2Id          = "MERRA2"
+   character*50, public,  parameter :: LIS_geositId          = "GEOS-IT"
 
    character*50, public,  parameter :: LIS_cmapId            = "CMAP"
    character*50, public,  parameter :: LIS_chirps2Id         = "CHIRPS2"
@@ -147,36 +150,35 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_stg4Id            = "CPC STAGEIV"
 
    character*50, public,  parameter :: LIS_narrId            = "NARR"
-   character*50, public,  parameter :: LIS_ALMIPIIId         = "ALMIPII"
    character*50, public,  parameter :: LIS_RFE2DailyId       = "RFE2(daily)"
-   character*50, public,  parameter :: LIS_ceopId            = "CEOP"
    character*50, public,  parameter :: LIS_scanId            = "SCAN"
-   character*50, public,  parameter :: LIS_armsId            = "ARMS"
-   character*50, public,  parameter :: LIS_gdasLSWGId        = "GDAS(LSWG)"
    !character*50, public,  parameter :: LIS_d2pcpcarId        = "D2PCPCAR"
    !character*50, public,  parameter :: LIS_d2pcpoklId        = "D2PCPOKL"
-   character*50, public,  parameter :: LIS_rdhm356Id         = "RDHM.3.5.6"
-   character*50, public,  parameter :: LIS_gdas3dId          = "GDAS(3d)"
    character*50, public,  parameter :: LIS_agrradpsId        = "AGRMET radiation (polar stereographic)"
-   character*50, public,  parameter :: LIS_agrradId          = "AGRMET radiation (latlon)"
    character*50, public,  parameter :: LIS_BondvilleId       = "Bondville"
    character*50, public,  parameter :: LIS_LoobosId          = "Loobos"
-   character*50, public,  parameter :: LIS_FASSTsingleId     = "FASST test"
    character*50, public,  parameter :: LIS_TRIGRSseattleId   = "TRIGRS test"
    character*50, public,  parameter :: LIS_snotelId          = "SNOTEL"
-   character*50, public,  parameter :: LIS_coopId            = "COOP"
-   character*50, public,  parameter :: LIS_rhoneAGGId        = "Rhone AGG"
    character*50, public,  parameter :: LIS_RFE2gdasId        = "RFE2(GDAS bias-corrected)"
    character*50, public,  parameter :: LIS_vicforcingId      = "VIC processed forcing"
    character*50, public,  parameter :: LIS_PALSmetforcId     = "PALS station forcing"
-   character*50, public,  parameter :: LIS_PILDASmetforcId   = "PILDAS"
    character*50, public,  parameter :: LIS_USGSPETforcId     = "PET USGS"
-   character*50, public,  parameter :: LIS_capaId            = "CaPA"
    character*50, public,  parameter :: LIS_nam242Id          = "NAM242"
    character*50, public,  parameter :: LIS_WRFoutId          = "WRFout"
+   character*50, public,  parameter :: LIS_COAMPSoutId       = "COAMPSout"
+   character*50, public,  parameter :: LIS_WRFoutv2Id        = "WRFoutv2"
+   character*50, public,  parameter :: LIS_WRFakId           = "WRF AK"
    character*50, public,  parameter :: LIS_AWAPforcId        = "AWAP"
    character*50, public,  parameter :: LIS_HiMATGMUforcId    = "HiMAT GMU"
+   character*50, public,  parameter :: LIS_AWRALforcId       = "AWRAL processed forcing"
    character*50, public,  parameter :: LIS_mrmsId            = "MRMS"
+   character*50, public,  parameter :: LIS_era5Id            = "ERA5"
+   character*50, public,  parameter :: LIS_plumber2Id        = "PLUMBER2"
+   character*50, public,  parameter :: LIS_gddpId            = "GDDP"
+   character*50, public,  parameter :: LIS_galwemId          = "GALWEM forecast"
+   character*50, public,  parameter :: LIS_galwemgeId        = "GALWEM-GE forecast"
+   character*50, public,  parameter :: LIS_mogrepsgId        = "MOGREPS-G forecast"
+
 !-------------------------------------------------------------------------
 ! land surface parameters
 !-------------------------------------------------------------------------
@@ -261,6 +263,8 @@ module LIS_pluginIndices
         "GCOMW AMSR2 L3 soil moisture"
    character*50, public,  parameter :: LIS_GCOMW_AMSR2L3sndobsId = &
         "GCOMW AMSR2 L3 snow depth"
+   character*50, public,  parameter :: LIS_SNODASobsId = &
+        "SNODAS"
    character*50, public,  parameter :: LIS_SMOSL2smobsId         = &
         "SMOS L2 soil moisture"
    character*50, public,  parameter :: LIS_pildassmobsId         = &
@@ -269,18 +273,39 @@ module LIS_pluginIndices
         "SMOS(NESDIS) soil moisture"
    character*50, public,  parameter :: LIS_NASASMAPsmobsId       = &
         "SMAP(NASA) soil moisture"
+   character*50, public,  parameter :: LIS_CDFTRANSFERNASASMAPsmobsId = &
+        "SMAP(NASA) soil moisture with CDF Transfer"                 !MN 
+   character*50, public,  parameter :: LIS_SMOSNRTNNL2smobsId    = &
+        "SMOS NRT NN soil moisture"                                  !YK
+   character*50, public,  parameter :: LIS_SMAPEOPLsmobsId       = &
+        "SMAP_E_OPL soil moisture"                                   !YK
    character*50, public,  parameter :: LIS_NASASMAPvodobsId      = &
         "SMAP(NASA) vegetation optical depth"
    character*50, public,  parameter :: LIS_GLASSlaiobsId         = &
         "GLASS LAI"
    character*50, public,  parameter :: LIS_MODISsportLAIobsId    = &
         "MODIS SPoRT LAI"
+   character*50, public,  parameter :: LIS_MCD15A2HlaiobsId      = &
+        "MCD15A2H LAI"
+   character*50, public,  parameter :: LIS_VIIRSgvfobsId         = &
+        "VIIRS GVF"                                                  !YK
+   character*50, public,  parameter :: LIS_CDFSgvfobsId          = &
+        "CDFS GVF"                                                   !YK
    character*50, public,  parameter :: LIS_GLASSalbedoobsId      = &
         "GLASS Albedo"
    character*50, public,  parameter :: LIS_SMAPNRTsmobsId        = &
         "SMAP(NRT) soil moisture"
    character*50, public,  parameter :: LIS_ASOsweobsId           = &
         "ASO SWE"
+   character*50, public,  parameter :: LIS_synwlId             = &
+        "Synthetic water level"
+   character*50, public,  parameter :: LIS_THySMId             = &
+           "THySM"
+   character*50, public,  parameter :: LIS_hydrowebwlId        = &
+        "Hydroweb water level"
+   character*50, public,  parameter :: LIS_wusUCLAobsId        = &
+        "Western U.S. UCLA snow"
+
 !-------------------------------------------------------------------------
 ! Bias Estimation Algorithms
 !-------------------------------------------------------------------------
@@ -317,6 +342,7 @@ module LIS_pluginIndices
    character*50, public,  parameter :: LIS_ARSsmobsId = "ARS sm" ! SY
    character*50, public,  parameter :: LIS_ISMNsmobsId = "ISMN sm" 
    character*50, public,  parameter :: LIS_SMAPsmobsId = "SMAP sm"
+   character*50, public,  parameter :: LIS_UAsnowobsId = "UA snow"
 !-------------------------------------------------------------------------
 ! Objective Function Evaluation Criteria
 !-------------------------------------------------------------------------
@@ -343,6 +369,7 @@ module LIS_pluginIndices
    character*50, public, parameter :: LIS_NLDASrouterId = "NLDAS router"
    character*50, public, parameter :: LIS_HYMAProuterId = "HYMAP router"
    character*50, public, parameter :: LIS_HYMAP2routerId = "HYMAP2 router"
+   character*50, public, parameter :: LIS_RAPIDrouterId = "RAPID router"
 !-------------------------------------------------------------------------
 ! Runoff data support
 !-------------------------------------------------------------------------

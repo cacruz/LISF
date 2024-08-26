@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -141,32 +143,26 @@ contains
                 call LIS_setDynparams(n)
                 call LIS_get_met_forcing(n)
                 call LIS_perturb_forcing(n)
-                if(LIS_rc%DAincrMode(n).eq.1) then
-                   call LIS_irrigation_run(n)
-                endif
+                call LIS_irrigation_run(n)
                 call LIS_surfaceModel_f2t(n)  
                 call LIS_surfaceModel_run(n)
                 call LIS_surfaceModel_diagnoseVarsForDA(n)
                 call LIS_surfaceModel_perturb_states(n)
-                if(LIS_rc%DAincrMode(n).eq.1) then
-                  call LIS_readDAobservations(n)
-                  call LIS_perturb_DAobservations(n)   
-                end if
+                call LIS_readDAobservations(n)
+                call LIS_perturb_DAobservations(n)
                 call LIS_perturb_writerestart(n)
                 call LIS_dataassim_run(n)
                 call LIS_dataassim_output(n)
                 call LIS_surfaceModel_output(n)  
-                call LIS_surfaceModel_writerestart(n)                
-                if(LIS_rc%DAincrMode(n).eq.1) then
-                   call LIS_irrigation_output(n)
-                endif
+                call LIS_surfaceModel_writerestart(n)
+                call LIS_irrigation_output(n)
                 call LIS_routing_run(n)
                 call LIS_routing_writeoutput(n)
                 call LIS_routing_writerestart(n)
                 call updateIncrementsFlag(n)
              endif
           enddo
-          call LIS_flush(LIS_logunit)
+          flush(LIS_logunit)
        enddo
 
        if(LIS_rc%endtime.ne.1) then 

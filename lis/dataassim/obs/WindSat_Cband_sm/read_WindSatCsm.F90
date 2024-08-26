@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -22,6 +24,7 @@ subroutine read_WindSatCsm(n, OBS_State, OBS_Pert_state)
   use LIS_timeMgrMod, only : LIS_calendar, LIS_clock, LIS_get_julss
   use LIS_logMod,     only : LIS_logunit, LIS_endrun, & 
        LIS_getNextUnitNumber, LIS_releaseUnitNumber, LIS_verify
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use WindSatCsm_Mod, only : WindSatCsm_struc
   use map_utils
   
@@ -63,7 +66,7 @@ subroutine read_WindSatCsm(n, OBS_State, OBS_Pert_state)
   integer             :: gid(LIS_rc%ngrid(n))
   integer             :: assimflag(LIS_rc%ngrid(n))
 
-  character*100       :: smobsdir
+  character(len=LIS_CONST_PATH_LEN) :: smobsdir
   logical             :: data_update
   logical             :: file_exists
 

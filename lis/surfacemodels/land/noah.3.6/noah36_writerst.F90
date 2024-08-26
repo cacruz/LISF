@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -39,6 +41,7 @@ subroutine noah36_writerst(n)
        LIS_releaseUnitNumber, LIS_verify
   use LIS_fileIOMod, only : LIS_create_output_directory, &
                               LIS_create_restart_filename
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use noah36_lsmMod
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
   use netcdf
@@ -63,7 +66,7 @@ subroutine noah36_writerst(n)
 ! \end{description}
 !EOP
 !  real :: curr_time
-  character*100 :: filen
+  character(len=LIS_CONST_PATH_LEN) :: filen
   logical       :: alarmCheck
   integer       :: ftn
   integer       :: status
@@ -108,7 +111,7 @@ subroutine noah36_writerst(n)
            call LIS_verify(status,'Error in nf90_close in noah36_writerst')
 #endif
         endif
-        write(LIS_logunit,*) '[INFO] Noah-3.6 archive restart written: ',filen
+        write(LIS_logunit,*) '[INFO] Noah-3.6 archive restart written: ',trim(filen)
      endif
   end if
 end subroutine noah36_writerst
@@ -184,7 +187,7 @@ subroutine noah36_dump_restart(n, ftn, wformat)
 !
 !EOP
    integer :: l,t
-   integer :: dimID(10)
+   integer :: dimID(11)
    integer :: t1Id, cmcid, snowhid, sneqvid, smcid, sh2oId, stcId
    integer :: cmId, chId,snotime1Id,emissId,z0Id,albId,q1Id
    real, allocatable :: tmptilen(:)

@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -62,6 +64,7 @@ module vic412_lsmMod
 ! 14 Aug 2013; Shugong Wang, Implementation of VIC 4.1.1 into LIS-7. 
 ! !USES:        
   use vic412_module
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
 
   implicit none
   
@@ -88,7 +91,7 @@ module vic412_lsmMod
      integer                    :: state_chunk_size
      real*8                     :: MAX_SNOW_TEMP
      character*100              :: global_param
-     character*256              :: rfile 
+     character(len=LIS_CONST_PATH_LEN) :: rfile 
      character*32               :: rfile_format 
      type(vicdec), allocatable :: vic(:)
   end type vic412_type_dec

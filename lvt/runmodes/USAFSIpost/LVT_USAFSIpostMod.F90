@@ -1,15 +1,24 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !
 ! MODULE: LVT_USAFSIpostMod
 !
 ! REVISION HISTORY:
 ! 13 May 2019  Eric Kemp  Initial version
 ! 13 Dec 2019  Eric Kemp  Changed to USAFSI.
+! 09 Oct 2020  Eric Kemp  Added legacy SNODEP files.
+! 14 Jul 2021  Eric Kemp  Fixed bug in creating GRIB output directory.
+! 26 Jul 2022  Eric Kemp  Corrected GRIB2 output name.
 !
 ! DESCRIPTION:
-! Source code for reading USAFSI netCDF file, writing back out in GRIB2, 
+! Source code for reading USAFSI netCDF file, writing back out in GRIB,
 ! interpolating to predefined Air Force grids, and outputting those grids in
 ! GRIB1 files.
 !------------------------------------------------------------------------------
@@ -39,7 +48,7 @@ module LVT_USAFSIpostMod
       real :: ne_corner_lon
       real :: dx
       real :: dy
-      
+
    contains
 
       ! Object methods
@@ -56,10 +65,10 @@ module LVT_USAFSIpostMod
    character(len=15), parameter, public :: SH_PS16 = 'sh_ps16'
 
 contains
-   
+
    ! Constructor for LVT_USAFSIpost_t object
    subroutine new(this)
-      
+
       ! Imports
       use LVT_coreMod, only: LVT_rc
       use LVT_logMod, only: LVT_logunit, LVT_endrun
@@ -76,6 +85,7 @@ contains
       ! Construct the input netCDF filename
       this%input_nc_file = &
            trim(LVT_rc%input_dir) // &
+           '/' // &
            trim(LVT_rc%input_prefix) // &
            trim(LVT_rc%yyyymmddhh) // &
            ".nc"
@@ -156,7 +166,7 @@ contains
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
       write(LVT_logunit,*)'[INFO] Reading USAFSI file ', &
            trim(this%input_nc_file)
-      
+
       ! Open the file for reading
       call LVT_verify(nf90_open(path=trim(this%input_nc_file), &
            mode=NF90_NOWRITE, &
@@ -389,7 +399,24 @@ contains
       integer :: ftn, rc, status2
       character(len=255) :: msg
       real, allocatable :: go(:)
+      logical :: found
       integer :: c, r
+
+      integer, external :: LVT_create_subdirs
+
+      ! Make sure output directory exists
+      inquire(file=trim(LVT_rc%output_dir), &
+           exist=found)
+      if (.not. found) then
+         rc = LVT_create_subdirs(len_trim(LVT_rc%output_dir), &
+              trim(LVT_rc%output_dir))
+         if (rc .ne. 0) then
+            write(LVT_logunit,*)'[ERR] Cannot create directory ', &
+                 trim(LVT_rc%output_dir)
+            write(LVT_logunit,*)'[ERR] Program will stop'
+            call LVT_endrun()
+         end if
+      end if
 
       ! Set the USAFSI grid description
       call set_griddesci(this, griddesci)
@@ -438,7 +465,7 @@ contains
       end do ! r
       call write_grib2(ftn, griddesci, this%nc, this%nr, go, &
            dspln=10, cat=2, num=0, typegenproc=12, fcsttime=0)
-   
+
       ! Handle icemask
       do r = 1, this%nr
          do c = 1, this%nc
@@ -448,7 +475,7 @@ contains
       ! FIXME:  Find parameter number for ice mask
       call write_grib2(ftn, griddesci, this%nc, this%nr, go, &
            dspln=10, cat=2, num=192, typegenproc=12, fcsttime=0)
-      
+
       ! Handle iceage
       do r = 1, this%nr
          do c = 1, this%nc
@@ -502,10 +529,10 @@ contains
       real, allocatable :: w11_bin(:)
       real, allocatable :: w12_bin(:)
       real, allocatable :: w21_bin(:)
-      real, allocatable :: w22_bin(:)      
+      real, allocatable :: w22_bin(:)
       integer, allocatable :: n11_neighbor(:)
       real, allocatable :: rlat_neighbor(:)
-      real, allocatable :: rlon_neighbor(:)      
+      real, allocatable :: rlon_neighbor(:)
       logical*1, allocatable :: li(:), lo(:), lo_bin(:), lo_neighbor(:)
       real, allocatable :: gi(:), go(:), go_bin(:), go_neighbor(:)
       real, allocatable :: go2d(:,:)
@@ -519,8 +546,27 @@ contains
       integer :: gridDefinitionTemplateNumber
       character(len=255) :: msg
       integer :: grid_definition
+      logical :: write_fullgrib_file
+      logical :: write_snodep_file
+      logical :: found
 
-      ! Sanity check the gridID. 
+      integer, external :: LVT_create_subdirs
+
+      ! Make sure output directory exists
+      inquire(file=trim(LVT_rc%output_dir), &
+           exist=found)
+      if (.not. found) then
+         rc = LVT_create_subdirs(len_trim(LVT_rc%output_dir), &
+              trim(LVT_rc%output_dir))
+         if (rc .ne. 0) then
+            write(LVT_logunit,*)'[ERR] Cannot create directory ', &
+                 trim(LVT_rc%output_dir)
+            write(LVT_logunit,*)'[ERR] Program will stop'
+            call LVT_endrun()
+         end if
+      end if
+
+      ! Sanity check the gridID.
       call check_gridID(gridID)
 
       ! Set the grid definition number
@@ -531,9 +577,9 @@ contains
 
       ! Set the output grid description
       if (trim(gridID) .eq. trim(GLOBAL_LL0P25)) then
-         call set_griddesco_global_ll0p25(this, griddesco)         
+         call set_griddesco_global_ll0p25(this, griddesco)
       else if (trim(gridID) .eq. trim(NH_PS16)) then
-         call set_griddesco_nh_ps16(this, griddesco)         
+         call set_griddesco_nh_ps16(this, griddesco)
       else if (trim(gridID) .eq. trim(SH_PS16)) then
          call set_griddesco_sh_ps16(this, griddesco)
       end if
@@ -588,7 +634,7 @@ contains
          allocate(w11_bin(nc_out*nr_out))
          allocate(w12_bin(nc_out*nr_out))
          allocate(w21_bin(nc_out*nr_out))
-         allocate(w22_bin(nc_out*nr_out))         
+         allocate(w22_bin(nc_out*nr_out))
          call bilinear_interp_input_usaf(griddesci, griddesco, &
               (nc_out*nr_out), &
               rlat_bin, rlon_bin, &
@@ -632,22 +678,6 @@ contains
               n11_neighbor, gridID)
       end if
 
-      ! Construct the GRIB2 filename
-      call build_filename_g1(gridID, LVT_rc%output_dir, &
-           LVT_rc%yyyymmddhh, fname)
-      
-      ! Open the GRIB1 file
-      call grib_open_file(ftn, fname, 'w', rc)
-      if (rc .ne. GRIB_SUCCESS) then
-         write(LVT_logunit,*)'[ERR] Error from grib_open_file'
-         call grib_get_error_string(rc, msg, status2)
-         write(LVT_logunit,*)'[ERR] ', trim(msg)
-         write(LVT_logunit,*)'[ERR] LVT will stop'
-         call LVT_endrun()
-      else
-         write(LVT_logunit,*)'[INFO] Writing to ', trim(fname)
-      end if
-
       ! Allocate memory for interpolation
       allocate(li(this%nc*this%nr))
       allocate(gi(this%nc*this%nr))
@@ -661,322 +691,450 @@ contains
          allocate(lo_neighbor(nc_out*nr_out))
       end if
 
-      ! Interpolate snoanl
-      do r = 1, this%nr
-         do c = 1, this%nc
-            if (this%snoanl(c,r) < 0) then
-               li(c + (r-1)*this%nc) = .false.
-               gi(c + (r-1)*this%nc) = LVT_rc%udef
-            else
-               li(c + (r-1)*this%nc) = .true.
-               gi(c + (r-1)*this%nc) = this%snoanl(c,r)               
-            end if
-         end do ! c
-      end do ! r
-      if (griddesco(1) == 0) then
-         call upscaleByAveraging((this%nc*this%nr), &
-              (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
-      else if (griddesco(1) == 5) then
-         call bilinear_interp(griddesco, li, gi, lo_bin, go_bin, &
-              (this%nc*this%nr), (nc_out*nr_out), &
-              rlat_bin, rlon_bin, &
-              w11_bin, w12_bin, w21_bin, w22_bin, &
-              n11_bin, n12_bin, n21_bin, n22_bin, &
-              LVT_rc%udef, iret)
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go_bin(c + (r-1)*nc_out)
-            end do
-         end do
-         ! Filter out points that are outside of the hemisphere.
-         if (trim(gridID) .eq. NH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         else if (trim(gridID) .eq. SH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         end if
-         ! If using Air Force polar stereographic, we must flip the grid so
-         ! the origin is in the upper-left corner instead of lower-left
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
-            end do ! c
-         end do ! r
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go2d(c,r)
-            end do ! c
-         end do ! r
+      ! Only create full grib1 file in certain cases.
+      write_fullgrib_file = .false.
+      if (trim(gridID) .eq. GLOBAL_LL0P25 .or. &
+           (trim(gridID) .eq. NH_PS16 .and. LVT_rc%output_nh_ps16) .or. &
+           (trim(gridID) .eq. SH_PS16 .and. LVT_rc%output_sh_ps16)) then
+         write_fullgrib_file = .true.
       end if
-      call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=66, &
-           decimal_scale_factor=2, bits_per_value=8, &
-           grid_definition=grid_definition)
 
-      ! Interpolate snoage
-      do r = 1, this%nr
-         do c = 1, this%nc
-            if (this%snoage(c,r) < 0) then
-               li(c + (r-1)*this%nc) = .false.
-               gi(c + (r-1)*this%nc) = LVT_rc%udef
-            else
-               li(c + (r-1)*this%nc) = .true.
-               gi(c + (r-1)*this%nc) = this%snoage(c,r)
-            end if
-         end do ! c
-      end do ! r
-      if (griddesco(1) == 0) then
-         call upscaleByMode((this%nc*this%nr), &
-              (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
-      else if (griddesco(1) == 5) then
-         call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
-              (this%nc*this%nr), (nc_out*nr_out), &
-              rlat_neighbor, rlon_neighbor, &
-              n11_neighbor, &
-              LVT_rc%udef, iret)
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
-            end do
-         end do
-         ! Filter out points that are outside of the hemisphere.
-         if (trim(gridID) .eq. NH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         else if (trim(gridID) .eq. SH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         end if
-         ! If using Air Force polar stereographic, we must flip the grid so
-         ! the origin is in the upper-left corner instead of lower-left
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
-            end do ! c
-         end do ! r
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go2d(c,r)
-            end do ! c
-         end do ! r
-      end if
-      call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=175, &
-           decimal_scale_factor=0, bits_per_value=7, &
-           grid_definition=grid_definition)
+      if (write_fullgrib_file) then
 
-      ! Handle icecon
-      do r = 1, this%nr
-         do c = 1, this%nc
-            if (this%icecon(c,r) < 0) then
-               li(c + (r-1)*this%nc) = .false.
-               gi(c + (r-1)*this%nc) = LVT_rc%udef
-            else
-               li(c + (r-1)*this%nc) = .true.
-               gi(c + (r-1)*this%nc) = this%icecon(c,r)*100 ! GRIB1 is in %
-            end if
-         end do ! c
-      end do ! r
-      if (griddesco(1) == 0) then
-         call upscaleByAveraging((this%nc*this%nr), &
-              (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
-      else if (griddesco(1) == 5) then
-         call bilinear_interp(griddesco, li, gi, lo_bin, go_bin, &
-              (this%nc*this%nr), (nc_out*nr_out), &
-              rlat_bin, rlon_bin, &
-              w11_bin, w12_bin, w21_bin, w22_bin, &
-              n11_bin, n12_bin, n21_bin, n22_bin, &
-              LVT_rc%udef, iret)
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go_bin(c + (r-1)*nc_out)
-            end do
-         end do
-         ! Filter out points that are outside of the hemisphere.
-         if (trim(gridID) .eq. NH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         else if (trim(gridID) .eq. SH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         end if
-         ! If using Air Force polar stereographic, we must flip the grid so
-         ! the origin is in the upper-left corner instead of lower-left
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
-            end do ! c
-         end do ! r
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go2d(c,r)
-            end do ! c
-         end do ! r
-      end if
-      call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=128, &
-           decimal_scale_factor=0, bits_per_value=7, &
-           grid_definition=grid_definition)
-      
-      ! Handle icemask
-      do r = 1, this%nr
-         do c = 1, this%nc
-            if (this%icemask(c,r) < 0) then
-               li(c + (r-1)*this%nc) = .false.
-               gi(c + (r-1)*this%nc) = LVT_rc%udef
-            else
-               li(c + (r-1)*this%nc) = .true.
-               gi(c + (r-1)*this%nc) = this%icemask(c,r)
-            end if
-         end do ! c
-      end do ! r
-      if (griddesco(1) == 0) then
-         call upscaleByMode((this%nc*this%nr), &
-              (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
-      else if (griddesco(1) == 5) then
-         call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
-              (this%nc*this%nr), (nc_out*nr_out), &
-              rlat_neighbor, rlon_neighbor, &
-              n11_neighbor, &
-              LVT_rc%udef, iret)
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
-            end do
-         end do
-         ! Filter out points that are outside of the hemisphere.
-         if (trim(gridID) .eq. NH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         else if (trim(gridID) .eq. SH_PS16) then
-            do r = 1, nr_out
-               do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
-               end do ! c
-            end do ! r
-         end if
-         ! If using Air Force polar stereographic, we must flip the grid so
-         ! the origin is in the upper-left corner instead of lower-left
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
-            end do ! c
-         end do ! r
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go2d(c,r)
-            end do ! c
-         end do ! r
-      end if
-      call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=91, &
-           decimal_scale_factor=0, bits_per_value=1, &
-           grid_definition=grid_definition)
+         ! Construct the GRIB1 filename
+         call build_filename_g1(gridID, LVT_rc%output_dir, &
+              LVT_rc%yyyymmddhh, fname)
 
-      ! Handle iceage
-      do r = 1, this%nr
-         do c = 1, this%nc
-            if (this%icemask(c,r) < 0) then
-               li(c + (r-1)*this%nc) = .false.
-               gi(c + (r-1)*this%nc) = LVT_rc%udef
-            else
-               li(c + (r-1)*this%nc) = .true.
-               gi(c + (r-1)*this%nc) = this%iceage(c,r)
-            end if
-         end do ! c
-      end do ! r
-      if (griddesco(1) == 0) then
-         call upscaleByMode((this%nc*this%nr), &
-              (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
-      else if (griddesco(1) == 5) then
-         call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
-              (this%nc*this%nr), (nc_out*nr_out), &
-              rlat_neighbor, rlon_neighbor, &
-              n11_neighbor, &
-              LVT_rc%udef, iret)
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
-            end do
-         end do
-         ! Filter out points that are outside of the hemisphere.
-         if (trim(gridID) .eq. NH_PS16) then
+         ! Open the GRIB1 file
+         call grib_open_file(ftn, fname, 'w', rc)
+         if (rc .ne. GRIB_SUCCESS) then
+            write(LVT_logunit,*)'[ERR] Error from grib_open_file'
+            call grib_get_error_string(rc, msg, status2)
+            write(LVT_logunit,*)'[ERR] ', trim(msg)
+            write(LVT_logunit,*)'[ERR] LVT will stop'
+            call LVT_endrun()
+         else
+            write(LVT_logunit,*)'[INFO] Writing to ', trim(fname)
+         end if
+
+         ! Interpolate snoanl
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%snoanl(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%snoanl(c,r)
+               end if
+            end do ! c
+         end do ! r
+         if (griddesco(1) == 0) then
+            call upscaleByAveraging((this%nc*this%nr), &
+                 (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
+         else if (griddesco(1) == 5) then
+            call bilinear_interp(griddesco, li, gi, lo_bin, go_bin, &
+                 (this%nc*this%nr), (nc_out*nr_out), &
+                 rlat_bin, rlon_bin, &
+                 w11_bin, w12_bin, w21_bin, w22_bin, &
+                 n11_bin, n12_bin, n21_bin, n22_bin, &
+                 LVT_rc%udef, iret)
             do r = 1, nr_out
                do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
+                  go(c + (r-1)*nc_out) = go_bin(c + (r-1)*nc_out)
+               end do
+            end do
+            ! Filter out points that are outside of the hemisphere.
+            if (trim(gridID) .eq. NH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            else if (trim(gridID) .eq. SH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            end if
+            ! If using Air Force polar stereographic, we must flip the grid so
+            ! the origin is in the upper-left corner instead of lower-left
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
                end do ! c
             end do ! r
-         else if (trim(gridID) .eq. SH_PS16) then
             do r = 1, nr_out
                do c = 1, nc_out
-                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
-                     go(c + (r-1)*nc_out) = LVT_rc%udef
-                  end if
+                  go(c + (r-1)*nc_out) = go2d(c,r)
                end do ! c
             end do ! r
          end if
-         ! If using Air Force polar stereographic, we must flip the grid so
-         ! the origin is in the upper-left corner instead of lower-left
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=66, &
+              decimal_scale_factor=2, bits_per_value=8, &
+              grid_definition=grid_definition)
+
+         ! Interpolate snoage
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%snoage(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%snoage(c,r)
+               end if
             end do ! c
          end do ! r
-         do r = 1, nr_out
-            do c = 1, nc_out
-               go(c + (r-1)*nc_out) = go2d(c,r)
+         if (griddesco(1) == 0) then
+            call upscaleByMode((this%nc*this%nr), &
+                 (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
+         else if (griddesco(1) == 5) then
+            call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
+                 (this%nc*this%nr), (nc_out*nr_out), &
+                 rlat_neighbor, rlon_neighbor, &
+                 n11_neighbor, &
+                 LVT_rc%udef, iret)
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
+               end do
+            end do
+            ! Filter out points that are outside of the hemisphere.
+            if (trim(gridID) .eq. NH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            else if (trim(gridID) .eq. SH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            end if
+            ! If using Air Force polar stereographic, we must flip the grid so
+            ! the origin is in the upper-left corner instead of lower-left
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+               end do ! c
+            end do ! r
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go2d(c,r)
+               end do ! c
+            end do ! r
+         end if
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=175, &
+              decimal_scale_factor=0, bits_per_value=7, &
+              grid_definition=grid_definition)
+
+         ! Handle icecon
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%icecon(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%icecon(c,r)*100 ! GRIB1 is in %
+               end if
             end do ! c
          end do ! r
-      end if
-      call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=129, &
+         if (griddesco(1) == 0) then
+            call upscaleByAveraging((this%nc*this%nr), &
+                 (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
+         else if (griddesco(1) == 5) then
+            call bilinear_interp(griddesco, li, gi, lo_bin, go_bin, &
+                 (this%nc*this%nr), (nc_out*nr_out), &
+                 rlat_bin, rlon_bin, &
+                 w11_bin, w12_bin, w21_bin, w22_bin, &
+                 n11_bin, n12_bin, n21_bin, n22_bin, &
+                 LVT_rc%udef, iret)
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go_bin(c + (r-1)*nc_out)
+               end do
+            end do
+            ! Filter out points that are outside of the hemisphere.
+            if (trim(gridID) .eq. NH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            else if (trim(gridID) .eq. SH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            end if
+            ! If using Air Force polar stereographic, we must flip the grid so
+            ! the origin is in the upper-left corner instead of lower-left
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+               end do ! c
+            end do ! r
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go2d(c,r)
+               end do ! c
+            end do ! r
+         end if
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=128, &
+              decimal_scale_factor=0, bits_per_value=7, &
+              grid_definition=grid_definition)
+
+         ! Handle icemask
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%icemask(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%icemask(c,r)
+               end if
+            end do ! c
+         end do ! r
+         if (griddesco(1) == 0) then
+            call upscaleByMode((this%nc*this%nr), &
+                 (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
+         else if (griddesco(1) == 5) then
+            call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
+                 (this%nc*this%nr), (nc_out*nr_out), &
+                 rlat_neighbor, rlon_neighbor, &
+                 n11_neighbor, &
+                 LVT_rc%udef, iret)
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
+               end do
+            end do
+            ! Filter out points that are outside of the hemisphere.
+            if (trim(gridID) .eq. NH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            else if (trim(gridID) .eq. SH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            end if
+            ! If using Air Force polar stereographic, we must flip the grid so
+            ! the origin is in the upper-left corner instead of lower-left
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+               end do ! c
+            end do ! r
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go2d(c,r)
+               end do ! c
+            end do ! r
+         end if
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=91, &
+              decimal_scale_factor=0, bits_per_value=1, &
+              grid_definition=grid_definition)
+
+         ! Handle iceage
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%icemask(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%iceage(c,r)
+               end if
+            end do ! c
+         end do ! r
+         if (griddesco(1) == 0) then
+            call upscaleByMode((this%nc*this%nr), &
+                 (nc_out*nr_out), LVT_rc%udef, n11, li, gi, lo, go)
+         else if (griddesco(1) == 5) then
+            call neighbor_interp(griddesco, li, gi, lo_neighbor, go_neighbor, &
+                 (this%nc*this%nr), (nc_out*nr_out), &
+                 rlat_neighbor, rlon_neighbor, &
+                 n11_neighbor, &
+                 LVT_rc%udef, iret)
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go_neighbor(c + (r-1)*nc_out)
+               end do
+            end do
+            ! Filter out points that are outside of the hemisphere.
+            if (trim(gridID) .eq. NH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            else if (trim(gridID) .eq. SH_PS16) then
+               do r = 1, nr_out
+                  do c = 1, nc_out
+                     if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                        go(c + (r-1)*nc_out) = LVT_rc%udef
+                     end if
+                  end do ! c
+               end do ! r
+            end if
+            ! If using Air Force polar stereographic, we must flip the grid so
+            ! the origin is in the upper-left corner instead of lower-left
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+               end do ! c
+            end do ! r
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  go(c + (r-1)*nc_out) = go2d(c,r)
+               end do ! c
+            end do ! r
+         end if
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=129, &
            decimal_scale_factor=0, bits_per_value=9, &
            grid_definition=grid_definition)
 
-      ! Close the GRIB1 file
-      call grib_close_file(ftn, rc)
-      if (rc .ne. GRIB_SUCCESS) then
-         write(LVT_logunit,*)'[ERR] Error from grib_close_file'
-         call grib_get_error_string(rc, msg, status2)
-         write(LVT_logunit,*)'[ERR] ', trim(msg)
-         write(LVT_logunit,*)'[ERR] LVT will stop'
-         call LVT_endrun()
+         ! Close the GRIB1 file
+         call grib_close_file(ftn, rc)
+         if (rc .ne. GRIB_SUCCESS) then
+            write(LVT_logunit,*)'[ERR] Error from grib_close_file'
+            call grib_get_error_string(rc, msg, status2)
+            write(LVT_logunit,*)'[ERR] ', trim(msg)
+            write(LVT_logunit,*)'[ERR] LVT will stop'
+            call LVT_endrun()
+         end if
+
+      end if ! if write_fullgrib_file
+
+
+      ! EMK...Additional SNODEP file for 16th mesh only
+      write_snodep_file = .false.
+      if (trim(gridID) .eq. trim(NH_PS16) .and. &
+           LVT_rc%output_nh_ps16_snodep) then
+         write_snodep_file = .true.
       end if
+      if (trim(gridID) .eq. trim(SH_PS16) .and. &
+           LVT_rc%output_sh_ps16_snodep) then
+         write_snodep_file = .true.
+      end if
+      if (write_snodep_file) then
+         call build_filename_g1_snodep(gridID, LVT_rc%output_dir, &
+              LVT_rc%yyyymmddhh, fname)
+
+         ! Open the GRIB1 file
+         call grib_open_file(ftn, fname, 'w', rc)
+         if (rc .ne. GRIB_SUCCESS) then
+            write(LVT_logunit,*)'[ERR] Error from grib_open_file'
+            call grib_get_error_string(rc, msg, status2)
+            write(LVT_logunit,*)'[ERR] ', trim(msg)
+            write(LVT_logunit,*)'[ERR] LVT will stop'
+            call LVT_endrun()
+         else
+            write(LVT_logunit,*)'[INFO] Writing to ', trim(fname)
+         end if
+
+         ! Interpolate snoanl
+         do r = 1, this%nr
+            do c = 1, this%nc
+               if (this%snoanl(c,r) < 0) then
+                  li(c + (r-1)*this%nc) = .false.
+                  gi(c + (r-1)*this%nc) = LVT_rc%udef
+               else
+                  li(c + (r-1)*this%nc) = .true.
+                  gi(c + (r-1)*this%nc) = this%snoanl(c,r)
+               end if
+            end do ! c
+         end do ! r
+         call bilinear_interp(griddesco, li, gi, lo_bin, go_bin, &
+              (this%nc*this%nr), (nc_out*nr_out), &
+              rlat_bin, rlon_bin, &
+              w11_bin, w12_bin, w21_bin, w22_bin, &
+              n11_bin, n12_bin, n21_bin, n22_bin, &
+              LVT_rc%udef, iret)
+         do r = 1, nr_out
+            do c = 1, nc_out
+               go(c + (r-1)*nc_out) = go_bin(c + (r-1)*nc_out)
+            end do
+         end do
+
+         ! Filter out points that are outside of the hemisphere.
+         if (trim(gridID) .eq. NH_PS16) then
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  if (rlat_bin(c + (r-1)*nc_out) < 0) then
+                     go(c + (r-1)*nc_out) = LVT_rc%udef
+                  end if
+               end do ! c
+            end do ! r
+         else if (trim(gridID) .eq. SH_PS16) then
+            do r = 1, nr_out
+               do c = 1, nc_out
+                  if (rlat_bin(c + (r-1)*nc_out) > 0) then
+                     go(c + (r-1)*nc_out) = LVT_rc%udef
+                  end if
+               end do ! c
+            end do ! r
+         end if
+
+         ! If using Air Force polar stereographic, we must flip the grid so
+         ! the origin is in the upper-left corner instead of lower-left
+         do r = 1, nr_out
+            do c = 1, nc_out
+               go2d(c,nr_out - r + 1) = go(c + (r-1)*nc_out)
+            end do ! c
+         end do ! r
+         do r = 1, nr_out
+            do c = 1, nc_out
+               go(c + (r-1)*nc_out) = go2d(c,r)
+            end do ! c
+         end do ! r
+
+         ! Write the message
+         call write_grib1(ftn, griddesco, nc_out, nr_out, go, param=66, &
+              decimal_scale_factor=2, bits_per_value=8, &
+              grid_definition=grid_definition)
+
+         ! Close the GRIB1 file
+         call grib_close_file(ftn, rc)
+         if (rc .ne. GRIB_SUCCESS) then
+            write(LVT_logunit,*)'[ERR] Error from grib_close_file'
+            call grib_get_error_string(rc, msg, status2)
+            write(LVT_logunit,*)'[ERR] ', trim(msg)
+            write(LVT_logunit,*)'[ERR] LVT will stop'
+            call LVT_endrun()
+         end if
+
+      end if ! if write_snodep_file
 
       ! Clean up
       deallocate(n11)
@@ -1040,7 +1198,7 @@ contains
       ! Imports
       use LVT_coreMod, only: LVT_rc
 
-      ! Defaults                                                              
+      ! Defaults
       implicit none
 
       ! Arguments
@@ -1048,19 +1206,28 @@ contains
       character(len=10), intent(in) :: yyyymmddhh
       character(len=255), intent(out) :: filename
 
+      ! filename = trim(output_dir)  &
+      !      // '/PS.557WW_SC.' &
+      !      // trim(LVT_rc%security_class)//'_DI.' &
+      !      // trim(LVT_rc%data_category)//'_GP.' &
+      !      // 'LIS-SNOWICE_GR.C0P09DEG_AR.' &
+      !      // trim(LVT_rc%area_of_data)//'_PA.' &
+      !      //'USAFSI_DD.' &
+      !      // yyyymmddhh(1:8)//'_DT.' &
+      !      // yyyymmddhh(9:10)//'00_DF.GR2'
       filename = trim(output_dir)  &
            // '/PS.557WW_SC.' &
            // trim(LVT_rc%security_class)//'_DI.' &
            // trim(LVT_rc%data_category)//'_GP.' &
            // 'USAFSI_GR.C0P09DEG_AR.' &
            // trim(LVT_rc%area_of_data)//'_PA.' &
-           //'USAFSI_DD.' &
+           // 'SNOW-ICE_DD.' &
            // yyyymmddhh(1:8)//'_DT.' &
            // yyyymmddhh(9:10)//'00_DF.GR2'
 
    end subroutine build_filename_g2
-   
-   ! Build the grib2 filename
+
+   ! Build the grib1 filename
    subroutine build_filename_g1(gridID, output_dir, yyyymmddhh, filename)
 
       ! Defaults
@@ -1097,8 +1264,36 @@ contains
            trim(area) // '_PA.SNODEP_DD.' // &
            trim(yyyymmdd) // '_DT.' // &
            trim(hh) // '00_DF.GR1'
-           
+
    end subroutine build_filename_g1
+
+   ! Build the grib1 filename just for snodep
+   subroutine build_filename_g1_snodep(gridID, output_dir, yyyymmddhh, &
+        filename)
+
+      ! Defaults
+      implicit none
+
+      ! Arguments
+      character(len=*), intent(in) :: gridID
+      character(len=255), intent(in) :: output_dir
+      character(len=10), intent(in) :: yyyymmddhh
+      character(len=255), intent(out) :: filename
+
+      ! Local variables
+      character(len=10) :: area
+
+      if (trim(gridID) .eq. trim(NH_PS16)) then
+         area = 'NH'
+      else if (trim(gridID) .eq. trim(SH_PS16)) then
+         area = 'SH'
+      end if
+
+      filename = trim(output_dir) // '/' // &
+           'SNODEP_16_' // trim(area) // '_' // &
+           trim(yyyymmddhh) // '.GR1'
+
+   end subroutine build_filename_g1_snodep
 
    ! Internal subroutine for setting griddesci
    ! FIXME:  Add support for non-lat/lon projections
@@ -1171,7 +1366,7 @@ contains
       griddesco(38) =  179.875000
       griddesco(39) = 0.250000
       griddesco(40) = 0.250000
-      
+
    end subroutine set_griddesco_global_ll0p25
 
    ! Internal subroutine for setting griddesco for Northern Hemisphere 16th
@@ -1194,7 +1389,7 @@ contains
       xmesh = 23.813 ! Per 557WW GRIB1 manual
       xpnmcaf = 513
       ypnmcaf = 513
-      orient = 100.0 
+      orient = 100.0
 
       ! We need to use the USAF code to calculate the lat/lon.  However,
       ! the Air Force grid specifies the origin in the upper-left corner,
@@ -1246,7 +1441,7 @@ contains
       xmesh = 23.813 ! Per 557WW GRIB1 manual
       xpnmcaf = 513
       ypnmcaf = 513
-      orient = 100. 
+      orient = 100.
 
       ! We need to use the USAF code to calculate the lat/lon.  However,
       ! the Air Force grid specifies the origin in the upper-left corner,
@@ -1268,7 +1463,7 @@ contains
       griddesco(10) = -60.0
       griddesco(11) = orient
       griddesco(20) = 64
-      
+
       ! Stash away the upper-left lat/lon for later use
       call pstoll(2, 1, float(1), float(1), 16, alat, alon)
       griddesco(30) = alat
@@ -1280,7 +1475,7 @@ contains
    subroutine write_grib2(ftn, griddesco, &
         nc_out, nr_out, go, dspln, cat, num, typegenproc, fcsttime)
 
-      ! Imports      
+      ! Imports
       use grib_api
       use LVT_coreMod, only: LVT_rc
       use LVT_gribWrapperMod, only: LVT_grib_set
@@ -1417,7 +1612,7 @@ contains
               abs(1000*griddesco(9)))
          if (griddesco(4) < 0) then
             call LVT_grib_set(igrib, 'projectionCentreFlag', 0)
-         else            
+         else
             call LVT_grib_set(igrib, 'projectionCentreFlag', 1)
          end if
          call LVT_grib_set(igrib, 'scanningMode', 0)
@@ -1441,7 +1636,7 @@ contains
       ! Octet 15-17 is skipped
       ! Octet 18...Use hours
       call LVT_grib_set(igrib, 'indicatorOfUnitOfTimeRange', 1)
-      ! Octets 19-22 
+      ! Octets 19-22
       call LVT_grib_set(igrib, 'forecastTime', fcsttime)
       ! Octets 23-34...Ground or water surface
       call LVT_grib_set(igrib, 'typeOfFirstFixedSurface', 1)
@@ -1481,7 +1676,7 @@ contains
         nc_out, nr_out, go, param, decimal_scale_factor, &
         bits_per_value, grid_definition)
 
-      ! Imports      
+      ! Imports
       use grib_api
       use LVT_coreMod, only: LVT_rc
       use LVT_gribWrapperMod, only: LVT_grib_set
@@ -1507,7 +1702,7 @@ contains
       character(len=4) :: cyyyy
       character(len=2) :: cmm, cdd, chh
       integer :: iyyyy, imm, idd, ihh, iyear, iyoc, ic
-      
+
 #if (defined USE_ECCODES)
       call grib_new_from_samples(igrib, "GRIB1", rc)
       if (rc .ne. GRIB_SUCCESS) then
@@ -1637,7 +1832,7 @@ contains
               abs(1000*griddesco(9)))
          if (griddesco(4) < 0) then
             call LVT_grib_set(igrib, 'projectionCentreFlag', 0)
-         else            
+         else
             call LVT_grib_set(igrib, 'projectionCentreFlag', 128)
          end if
          call LVT_grib_set(igrib, 'scanningMode', 0)
@@ -1670,7 +1865,7 @@ contains
          write(LVT_logunit,*)'[ERR] LVT will stop'
          call LVT_endrun()
       end if
-            
+
    end subroutine write_grib1
 
    ! Internal subroutine for writing global lat/lon output in netCDF.
@@ -1681,7 +1876,7 @@ contains
       use LVT_coreMod, only: LVT_rc
       use LVT_logMod, only: LVT_logunit, LVT_verify, LVT_endrun
       use netcdf
-      
+
       ! Defaults
       implicit none
 
@@ -1737,7 +1932,7 @@ contains
          swlon = gridDesco(5)
          nelat = gridDesco(7)
          nelon = gridDesco(8)
-         
+
          call LVT_verify(nf90_put_att(ncid,nf90_global,&
               "MAP_PROJECTION", "EQUIDISTANT CYLINDRICAL"), &
               '[ERR] nf90_put_att failed')
@@ -1759,7 +1954,7 @@ contains
          call LVT_verify(nf90_put_att(ncid,nf90_global, &
               "DY",dlat), &
               '[ERR] nf90_put_att failed')
-         
+
       case default
          write(LVT_logunit,*) &
               '[ERR] Only latlon map projection supported!'
@@ -1770,7 +1965,7 @@ contains
       call LVT_verify(nf90_put_att(ncid,nf90_global, &
            "INC_WATER_PTS","true"), &
            '[ERR] nf90_put_att failed')
-      
+
       ! Construct the longitudes
       ! FIXME:  Add support for other map projections
       call LVT_verify(nf90_def_var(ncid,"lon",nf90_float,dim_ids(1), &
@@ -1804,7 +1999,7 @@ contains
       call LVT_verify(nf90_put_att(ncid,lat_varid, &
            "standard_name","latitude"),&
            '[ERR] nf90_put_att failed')
-      
+
       ! Define the time array.  The valid time will be written as an
       ! attribute.
       call LVT_verify(nf90_def_var(ncid,'time',nf90_double,&
@@ -1821,9 +2016,9 @@ contains
            "units",trim(time_units)),&
            '[ERR] nf90_put_att failed')
       call LVT_verify(nf90_put_att(ncid,time_varid, &
-           "long_name","time"),&             
+           "long_name","time"),&
            '[ERR] nf90_put_att failed')
-      
+
       ! Define the snow depth analysis
       call LVT_verify(nf90_def_var(ncid,"snoanl",nf90_float, &
            dimids=dim_ids, &
@@ -1861,7 +2056,7 @@ contains
       ! Miscellaneous header information
       call LVT_verify(nf90_put_att(ncid,nf90_global,"Conventions", &
            "CF-1.7"), &
-           '[ERR] nf90_put_att failed')         
+           '[ERR] nf90_put_att failed')
 
       ! We are ready to write the actual data.  This requires taking NETCDF
       ! out of define mode.
@@ -1922,7 +2117,7 @@ contains
       use LVT_coreMod, only: LVT_rc
       use LVT_logMod, only: LVT_logunit, LVT_verify, LVT_endrun
       use netcdf
-      
+
       ! Defaults
       implicit none
 
@@ -2041,7 +2236,7 @@ contains
       ! Miscellaneous header information
       call LVT_verify(nf90_put_att(ncid,nf90_global,"Conventions", &
            "CF-1.7"), &
-           '[ERR] nf90_put_att failed')         
+           '[ERR] nf90_put_att failed')
 
       ! We are ready to write the actual data.  This requires taking NETCDF
       ! out of define mode.
@@ -2103,7 +2298,7 @@ contains
    ! mesh polar stereographic grids.
    subroutine bilinear_interp_input_usaf(gridDesci, gridDesco, npts, &
         rlat, rlon, n11, n12, n21, n22, w11, w12, w21, w22, afwa_grid)
-      
+
       ! Defaults
       implicit none
 
@@ -2149,7 +2344,7 @@ contains
             i1=xi
             i2=i1+1
             j1=yi
-            j2=j1+1 
+            j2=j1+1
             xf=xi-i1
             yf=yi-j1
             n11(n)=get_fieldpos(i1, j1, gridDesci)
@@ -2174,7 +2369,7 @@ contains
             n22(n)=0
          endif
       enddo
-            
+
    end subroutine bilinear_interp_input_usaf
 
    ! Internal subroutine to set up weights for neighbor interpolation.
@@ -2185,7 +2380,7 @@ contains
 
       ! Defaults
       implicit none
-      
+
       ! Arguments
       real, intent(in) :: griddesci(50)
       real, intent(in) :: griddesco(50)
@@ -2197,7 +2392,7 @@ contains
 
       ! Local variables
       integer             :: n
-      integer             :: mo, nv 
+      integer             :: mo, nv
       real                :: xpts(npts), ypts(npts)
       integer             :: i1, j1
       real                :: xi, yi
@@ -2225,7 +2420,7 @@ contains
             n112(n) = 0
          endif
       enddo
-      
+
    end subroutine neighbor_interp_input_usaf
 
    ! Internal function for setting GRIB1 grid definition

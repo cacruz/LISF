@@ -1,11 +1,17 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 
 subroutine LVT_init_USAFSIpost()
 
    ! Imports
-   use LVT_logmod, only: LVT_logunit, LVT_endrun, LVT_flush
+   use LVT_logmod, only: LVT_logunit, LVT_endrun
 
    ! Defaults
    implicit none
@@ -14,7 +20,7 @@ subroutine LVT_init_USAFSIpost()
    call read_usafsipost_settings()
 
    ! Other initialize steps
-   call LVT_flush(LVT_logunit)
+   flush(LVT_logunit)
 
 contains
 
@@ -57,11 +63,26 @@ contains
       call ESMF_ConfigGetAttribute(LVT_config, LVT_rc%output_sh_ps16, &
            label=trim(cfgline), rc=rc)
       call LVT_verify(rc, trim(cfgline)//" not defined")
+
+      cfgline = &
+           "USAFSI output GRIB1 SNODEP NH 16th mesh polar stereographic:"
+      call ESMF_ConfigGetAttribute(LVT_config, LVT_rc%output_nh_ps16_snodep, &
+           label=trim(cfgline), rc=rc)
+      call LVT_verify(rc, trim(cfgline)//" not defined")
+      
+      cfgline = &
+           "USAFSI output GRIB1 SNODEP SH 16th mesh polar stereographic:"
+      call ESMF_ConfigGetAttribute(LVT_config, LVT_rc%output_sh_ps16_snodep, &
+           label=trim(cfgline), rc=rc)
+      call LVT_verify(rc, trim(cfgline)//" not defined")
+
       
       if ( .not. LVT_rc%output_native .and. &
            .not. LVT_rc%output_global_ll0p25 .and. &
            .not. LVT_rc%output_nh_ps16 .and. &
-           .not. LVT_rc%output_sh_ps16) then
+           .not. LVT_rc%output_sh_ps16 .and. &
+           .not. LVT_rc%output_nh_ps16_snodep .and. &
+           .not. LVT_rc%output_sh_ps16_snodep) then
          write(LVT_logunit,*) "[ERR] No output selected for USAFpost mode!"
          write(LVT_logunit,*) "[ERR] Check the lvt.config file settings!"
          write(LVT_logunit,*) "[ERR] LVT will exit gracefully."

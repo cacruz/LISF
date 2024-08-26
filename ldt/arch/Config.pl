@@ -1,9 +1,11 @@
 #!/usr/bin/perl
 
 #-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-# NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.2
+# NASA Goddard Space Flight Center
+# Land Information System Framework (LISF)
+# Version 7.5
 #
-# Copyright (c) 2015 United States Government as represented by the
+# Copyright (c) 2024 United States Government as represented by the
 # Administrator of the National Aeronautics and Space Administration.
 # All Rights Reserved.
 #-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -16,14 +18,26 @@ if(defined($ENV{LDT_ARCH})){
    # The Cray/Intel environment is almost identical to the Linux/Intel
    # environment.  There are two modifications that must be made to the
    # Linux/Intel configuration settings to make them work on the Cray.
-   # So reset the sys_arch variable to "intel_ifc" and set a flag to 
-   # enable the cray modifications.
+   # So reset the sys_arch variable to "linux_ifc" and set a flag to
+   # enable the Cray modifications.
    if($sys_arch eq "cray_ifc"){
       $sys_arch = "linux_ifc";
       $cray_modifications = 1;
    }
    else{
       $cray_modifications = 0;
+   }
+   # The IBM/GNU environment is almost identical to the Linux/GNU
+   # environment.  There is one modification that must be made to the
+   # Linux/GNU configuration settings to make them work on the IBM Power9.
+   # So reset the sys_arch variable to "linux_gfortran" and set a flag to
+   # enable the IBM modifications.
+   if($sys_arch eq "ibm_gfortran"){
+      $sys_arch = "linux_gfortran";
+      $ibm_modifications = 1;
+   }
+   else{
+      $ibm_modifications = 0;
    }
 }
 else{
@@ -48,8 +62,9 @@ else{
    exit 1;
 }
 
-$sys_cc = $ENV{LDT_CC};
+
 if(defined($ENV{LDT_CC})){
+   $sys_cc = $ENV{LDT_CC};
 }
 else{
    print "--------------ERROR---------------------\n";
@@ -119,7 +134,7 @@ if($opt_lev == -3) {
     }
     elsif($sys_arch eq "Darwin_gfortran" || $sys_arch eq "linux_gfortran") {
 	$sys_opt = "-g -Wall -Wcharacter-truncation";
-	$sys_opt .= " -Wconversion-extra -Wextra -Wpedantic -Wrealloc-lhs";
+	$sys_opt .= " -Wconversion-extra -Wextra -Wrealloc-lhs";
 	$sys_opt .= " -Wrealloc-lhs-all";
 	# Run-time options
 	$sys_opt .= " -ffpe-trap=invalid,zero,overflow";
@@ -135,6 +150,12 @@ if($opt_lev == -3) {
 	print "Using '-g'\n";
 	$sys_opt = "-g ";
     }
+    elsif($sys_arch eq "cray_cray") {
+	print "Optimization level $opt_lev is not defined for $sys_arch.\n";
+	print "Using '-g'\n";
+	$sys_opt = "-g ";
+	$sys_c_opt = "-g ";
+    }
 }
 
 if($opt_lev == -2) {
@@ -144,6 +165,12 @@ if($opt_lev == -2) {
    }
    elsif($sys_arch eq "linux_gfortran") {
       $sys_opt = "-g -Wall -fbounds-check ";
+      $sys_c_opt = "-g ";
+   }
+   elsif($sys_arch eq "cray_cray") {
+	   print "Optimization level $opt_lev is not defined for $sys_arch.\n";
+      print "Using '-g'\n";
+      $sys_opt = "-g ";
       $sys_c_opt = "-g ";
    }
 }
@@ -160,8 +187,15 @@ elsif($opt_lev == 1) {
    $sys_c_opt = "";
 }
 elsif($opt_lev == 2) {
+  if($sys_arch eq "cray_cray") {
+      # EMK 14 Apr 2022...For best conformity to IEEE standard, use fp0
+      $sys_opt = "-O2 -h ipa2,scalar0,vector0,fp0 ";
+      $sys_c_opt = "";
+   }
+   else {
    $sys_opt = "-O2 ";
    $sys_c_opt = "";
+   }
 }
 elsif($opt_lev == 3) {
    $sys_opt = "-O3 ";
@@ -252,7 +286,12 @@ elsif($use_gribapi == 2) {
    if(defined($ENV{LDT_ECCODES})){
       $sys_gribapi_path = $ENV{LDT_ECCODES};
       $inc = "/include/";
-      $lib = "/lib/";
+      if ($sys_arch eq "cray_cray") {
+         $lib = "/lib64/";
+      }
+      else {
+         $lib = "/lib/";
+      }
       $inc_gribapi=$sys_gribapi_path.$inc;
       $lib_gribapi=$sys_gribapi_path.$lib;
    }
@@ -559,28 +598,35 @@ else{
    $libjpeg = "-ljpeg";
 }
 
+if(defined($ENV{LDT_RPC})){
+   $librpc = $ENV{LDT_RPC};
+}
+else{
+   $librpc = "";
+}
+
 if($sys_arch eq "linux_ifc") {
    if($use_omp == 1) {
       if($use_endian == 1) {
-         $fflags77= "-c -openmp ".$sys_opt."-nomixed_str_len_arg -names lowercase -convert little_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
-         $fflags =" -c -openmp ".$sys_opt."-u -traceback -fpe0  -nomixed_str_len_arg -names lowercase -convert little_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags77= "-c -openmp ".$sys_opt."-nomixed-str-len-arg -names lowercase -convert little_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags =" -c -openmp ".$sys_opt."-u -traceback -fpe0  -nomixed-str-len-arg -names lowercase -convert little_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
          $ldflags= " -openmp -L\$(LIB_ESMF) -lesmf -lstdc++ -limf -lm -lrt -lz";
       }
       else {
-         $fflags77= "-c -openmp ".$sys_opt."-nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
-         $fflags =" -c -openmp ".$sys_opt."-u -traceback -fpe0  -nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags77= "-c -openmp ".$sys_opt."-nomixed-str-len-arg -names lowercase -convert big_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags =" -c -openmp ".$sys_opt."-u -traceback -fpe0  -nomixed-str-len-arg -names lowercase -convert big_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
          $ldflags= " -openmp -L\$(LIB_ESMF) -lesmf -lstdc++ -limf -lm -lrt -lz";
       }
    }
    else {
       if($use_endian == 1) {
-         $fflags77= "-c ".$sys_opt."-nomixed_str_len_arg -names lowercase -convert little_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
-         $fflags =" -c ".$sys_opt."-u -traceback -fpe0  -nomixed_str_len_arg -names lowercase -convert little_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags77= "-c ".$sys_opt."-nomixed-str-len-arg -names lowercase -convert little_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags =" -c ".$sys_opt."-u -traceback -fpe0  -nomixed-str-len-arg -names lowercase -convert little_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
          $ldflags= " -L\$(LIB_ESMF) -lesmf -lstdc++ -limf -lm -lrt -lz";
       }
       else {
-         $fflags77= "-c ".$sys_opt."-nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
-         $fflags =" -c ".$sys_opt."-u -traceback -fpe0  -nomixed_str_len_arg -names lowercase -convert big_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags77= "-c ".$sys_opt."-nomixed-str-len-arg -names lowercase -convert big_endian -assume byterecl ".$sys_par." -DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
+         $fflags =" -c ".$sys_opt."-u -traceback -fpe0  -nomixed-str-len-arg -names lowercase -convert big_endian -assume byterecl ".$sys_par."-DIFC -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
          $ldflags= " -L\$(LIB_ESMF) -lesmf -lstdc++ -limf -lm -lrt -lz";
       }
    }
@@ -616,18 +662,31 @@ elsif($sys_arch eq "AIX") {
    $fflags ="-c ".$sys_opt."-c -g -qkeepparm -qsuffix=f=f:cpp=F90 -q64 -WF,-DAIX, ".$sys_par." -I\$(MOD_ESMF) -DUSE_INCLUDE_MPI";
    $ldflags= "-q64 -bmap:map -bloadmap:lm -lmass  -L\$(LIB_ESMF) -lesmf -lstdc++ -limf -lm -lrt -lz";
 }
+elsif($sys_arch eq "cray_cray") {
+   if($use_endian == 1) {
+      $fflags77= "-c ".$sys_opt." ".$sys_par." -DCRAYFTN -I\$(MOD_ESMF) ";
+      $fflags =" -c ".$sys_opt."-ef -Ktrap=fp  ".$sys_par."-DCRAYFTN -I\$(MOD_ESMF) ";
+      $ldflags= " -hdynamic -L\$(LIB_ESMF) -lesmf -lstdc++ -lrt";
+   }
+   else {
+      $fflags77= "-c ".$sys_opt." ".$sys_par." -DCRAYFTN -I\$(MOD_ESMF) ";
+      $fflags =" -c ".$sys_opt."-ef -Ktrap=fp  ".$sys_par."-DCRAYFTN -I\$(MOD_ESMF) ";
+      $ldflags= " -hbyteswapio -hdynamic -L\$(LIB_ESMF) -lesmf -lstdc++ -lrt";
+   }
 
+   $cflags = "-c ".$sys_c_opt." -DCRAYFTN";
 
+}
 
-#if($par_lev == 1) {
-#   $ldflags = $ldflags." -lmpi";
-#}
 if($par_lev == 1) {
    if (index($sys_fc, "-mt_mpi") != -1) {
       $ldflags = $ldflags." -lmpi_mt";
    }
-   elsif ($cray_modifications == 1) {
+   elsif ($cray_modifications == 1 || $sys_arch eq "cray_cray") {
       $ldflags = $ldflags." -lmpich";
+   }
+   elsif ($ibm_modifications == 1) {
+      $ldflags = $ldflags." -lmpi_ibm_mpifh";
    }
    else{
       $ldflags = $ldflags." -lmpi";
@@ -662,7 +721,7 @@ if($use_hdfeos == 1){
 if($use_hdf4 == 1){
    $fflags77 = $fflags77." -I\$(INC_HDF4) ";
    $fflags = $fflags." -I\$(INC_HDF4) ";
-   $ldflags = $ldflags." -L\$(LIB_HDF4) -lmfhdf -ldf ".$libjpeg." -lz ";
+   $ldflags = $ldflags." -L\$(LIB_HDF4) -lmfhdf -ldf ".$libjpeg." -lz ".$librpc;
 }
 if($use_hdf5 == 1){
    $fflags77 = $fflags77." -I\$(INC_HDF5) ";
@@ -683,9 +742,20 @@ if($enable_geotiff== 1){
 
 # EMK...Added LIGBEOTIFF for Air Force
 if($enable_libgeotiff== 1){
-    $cflags = $cflags." -I\$(INC_LIBGEOTIFF)";
+    # Kluge for koehr; locally installed the tiff library.
+    if(defined($ENV{LDT_TIFF})){
+       $INC_LIBTIFF = $ENV{LDT_TIFF}."/include";
+       $cflags = $cflags." -I".$INC_LIBTIFF." -I\$(INC_LIBGEOTIFF)";
+    }
+    else {
+       $cflags = $cflags." -I\$(INC_LIBGEOTIFF)";
+    }
     $tiffpath = "";
     $tiffdeps = "";
+    # Kluge for koehr; locally installed the tiff library.
+    if(defined($ENV{LDT_TIFF})){
+       $tiffpath = " -L".$ENV{LDT_TIFF}."/lib";
+    }
     if ( $cray_modifications == 1 ) {
        $tiffpath = " -L".$sys_libtiff_path;
        $tiffdeps = " -L".$sys_libjbig_path." -ljbig "." -L".$sys_liblzma_path." -llzma ";
@@ -769,6 +839,13 @@ if($use_hdf4 == 1) {
 }
 else{
    printf misc_file "%s\n","#undef USE_HDF4 ";
+}
+
+if($use_hdfeos == 1) {
+   printf misc_file "%s\n","#define USE_HDFEOS2 ";
+}
+else{
+   printf misc_file "%s\n","#undef USE_HDFEOS2 ";
 }
 
 if($use_hdf5 == 1) {

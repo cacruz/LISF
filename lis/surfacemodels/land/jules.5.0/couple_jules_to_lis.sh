@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+#-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+# NASA Goddard Space Flight Center
+# Land Information System Framework (LISF)
+# Version 7.5
+#
+# Copyright (c) 2024 United States Government as represented by the
+# Administrator of the National Aeronautics and Space Administration.
+# All Rights Reserved.
+#-------------------------END NOTICE -- DO NOT EDIT-----------------------
+
 ### Step 1: disable write_to_log in ./src/util/logging_mod.F90 from JULES code.
 ### logging_mod produces a lot of screen output. Replace it with a LIS version. 
 vim -N -u NONE -i NONE -e -s \
@@ -26,6 +36,8 @@ sed -i 's/CALL\ init_parms()/!\ CALL\ init_parms()/g' \
 sed -i 's/CALL\ init_ic(nml_dir)/!\ CALL\ init_ic(nml_dir)/g' \
   ./src/initialisation/standalone/init.F90
 sed -i 's/CALL\ init_dump()/!\ CALL\ init_dump()/g' \
+  ./src/initialisation/standalone/init.F90
+sed -i 's/CALL\ write_dump()/!\ CALL\ write_dump()/g' \
   ./src/initialisation/standalone/init.F90
 
 ### Step 3: disable MPI in JULES 
@@ -198,3 +210,7 @@ vim -N -u NONE -i NONE -e -s \
 
 ### Step 5: delete jules.F90
 rm ./src/control/standalone/jules.F90
+
+### Step 6: modify soil_htc_jls_mod.F90 to avoid a truncation error causing LIS-JULES crash  
+sed -i 's/smcl(i,n)\ -\ smclu(i,n)/max(smcl(i,n)\ -\ smclu(i,n),0.0)\ ! Modified\ by\ the\ LIS\ team\ to\ avoid\ truncation\ error/g' \
+  ./src/science/soil/soil_htc_jls_mod.F90

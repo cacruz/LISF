@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.2
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -64,6 +66,7 @@ module FLake1_Mod
 !
 ! !USES:
   use FLake1_module
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   
   implicit none
   
@@ -79,7 +82,7 @@ module FLake1_Mod
 !EOP
   type, public :: FLake1_type_dec
      logical            :: startFlag
-     character*256      :: rfile
+     character(len=LIS_CONST_PATH_LEN) :: rfile
      character*256      :: rformat
 !-------------------------------------------------------------------------
 ! ts, Count, rstInterval, outInterval

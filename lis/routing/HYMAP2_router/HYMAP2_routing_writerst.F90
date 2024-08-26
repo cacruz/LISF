@@ -1,7 +1,9 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Information System (LIS) v7.1
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
 !
-! Copyright (c) 2015 United States Government as represented by the
+! Copyright (c) 2024 United States Government as represented by the
 ! Administrator of the National Aeronautics and Space Administration.
 ! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
@@ -17,6 +19,7 @@
 ! 19 Jan 2016: Augusto Getirana;  Inclusion of four Local Inertia variables
 ! 10 Mar 2019: Sujay Kumar;       Added support for NetCDF and parallel 
 !                                 processing. 
+! 27 Apr 2020: Augusto Getirana;  Added support for urban drainage
 !  
 ! !INTERFACE: 
 subroutine HYMAP2_routing_writerst(n)
@@ -33,6 +36,7 @@ subroutine HYMAP2_routing_writerst(n)
   use LIS_logMod
   use LIS_fileIOMod
   use LIS_timeMgrMod
+  use LIS_constantsMod, only : LIS_CONST_PATH_LEN
   use HYMAP2_routingMod
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)           
   use netcdf
@@ -42,7 +46,7 @@ subroutine HYMAP2_routing_writerst(n)
   
   integer, intent(in)   :: n 
   
-  character*100         :: filename
+  character(len=LIS_CONST_PATH_LEN) :: filename
   integer               :: ftn
   integer               :: status
   logical               :: alarmCheck
@@ -71,7 +75,7 @@ subroutine HYMAP2_routing_writerst(n)
      if (LIS_masterproc) then
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)
         status = nf90_close(ftn)
-        call LIS_verify(status, "Error in nf90_close in NoahMP36_writerst")
+        call LIS_verify(status, "Error in nf90_close in HYMAP2_routing_writerst")
 #endif
      endif
      
@@ -126,11 +130,13 @@ subroutine HYMAP2_dump_restart(n, ftn)
     integer :: rivdph_pre_ID
     integer :: fldout_pre_ID
     integer :: flddph_pre_ID
+    !ag (27Apr2020)
+    integer :: drsto_ID
+    integer :: drout_ID
     ! write the header of the restart file
     call HYMAP2_writeGlobalHeader_restart(ftn, n, &
          "HYMAP2", &
          dimID)
-
     call HYMAP2_writeHeader_restart(ftn, n, dimID, rivsto_ID, "RIVSTO", &
          "river storage", &
          "-", 1, -99999.0, 99999.0)
@@ -155,35 +161,90 @@ subroutine HYMAP2_dump_restart(n, ftn)
     call HYMAP2_writeHeader_restart(ftn, n, dimID, flddph_pre_ID, "FLDDPH_PRE", &
          "flood depth pre", &
          "-", 1, -99999.0, 99999.0)
-
+!ag (27Apr2020)
+    if(HYMAP2_routing_struc(n)%flowtype==4)then    
+      call HYMAP2_writeHeader_restart(ftn, n, dimID, drsto_ID, "DRSTO", &
+           "urban drainage storage", &
+           "-", 1, -99999.0, 99999.0)
+      call HYMAP2_writeHeader_restart(ftn, n, dimID, drout_ID, "DROUT", &
+           "urban drainage discharge", &
+           "-", 1, -99999.0, 99999.0)
+    endif
     call HYMAP2_closeHeader_restart(ftn)
     
     ! write state variables into restart file
-    ! snow albedo at last time step
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%rivsto, &
-         rivsto_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%fldsto, &
-         fldsto_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%rnfsto, &
-         rnfsto_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%bsfsto, &
-         bsfsto_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%rivout_pre, &
-         rivout_pre_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%rivdph_pre, &
-         rivdph_pre_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%fldout_pre, &
-         fldout_pre_ID)    
-    call HYMAP2_writevar_restart(ftn, n, &
-         HYMAP2_routing_struc(n)%flddph_pre, &
-         flddph_pre_ID)    
+    if(HYMAP2_routing_struc(n)%useens.eq.0) then 
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%rivsto, &
+            rivsto_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%fldsto, &
+            fldsto_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%rnfsto, &
+            rnfsto_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%bsfsto, &
+            bsfsto_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%rivout_pre, &
+            rivout_pre_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%rivdph_pre, &
+            rivdph_pre_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%fldout_pre, &
+            fldout_pre_ID)    
+       call HYMAP2_writevar_restart(ftn,n, &
+            HYMAP2_routing_struc(n)%flddph_pre, &
+            flddph_pre_ID)    
+       !ag (27Apr2020)
+       !urban drainage storage   
+       if(HYMAP2_routing_struc(n)%flowtype==4)then    
+         call HYMAP2_writevar_restart(ftn,n, &
+              HYMAP2_routing_struc(n)%drsto, &
+              drsto_ID)    
+         call HYMAP2_writevar_restart(ftn,n, &
+              HYMAP2_routing_struc(n)%drout, &
+              drout_ID)
+       endif
+    else
+
+       call HYMAP2_writevar_restart_ens(ftn,n,&
+            HYMAP2_routing_struc(n)%rivsto, &
+            rivsto_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n,&
+            HYMAP2_routing_struc(n)%fldsto, &
+            fldsto_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n,&
+            HYMAP2_routing_struc(n)%rnfsto, &
+            rnfsto_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n,&
+            HYMAP2_routing_struc(n)%bsfsto, &
+            bsfsto_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n, &
+            HYMAP2_routing_struc(n)%rivout_pre, &
+            rivout_pre_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n, &
+            HYMAP2_routing_struc(n)%rivdph_pre, &
+            rivdph_pre_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n, &
+            HYMAP2_routing_struc(n)%fldout_pre, &
+            fldout_pre_ID)    
+       call HYMAP2_writevar_restart_ens(ftn,n, &
+            HYMAP2_routing_struc(n)%flddph_pre, &
+            flddph_pre_ID)  
+       !ag (27Apr2020)
+       !urban drainage storage       
+       if(HYMAP2_routing_struc(n)%flowtype==4)then    
+         call HYMAP2_writevar_restart_ens(ftn,n, &
+              HYMAP2_routing_struc(n)%drsto, &
+              drsto_ID)    
+         call HYMAP2_writevar_restart_ens(ftn,n, &
+              HYMAP2_routing_struc(n)%drout, &
+              drout_ID)
+       endif  
+    endif
 
   end subroutine HYMAP2_dump_restart
 
@@ -231,10 +292,18 @@ subroutine HYMAP2_dump_restart(n, ftn)
 #if (defined USE_NETCDF3 || defined USE_NETCDF4)           
     call date_and_time(date,time,zone,values)       
     if(LIS_masterproc) then 
-       call LIS_verify(nf90_def_dim(ftn,'ntiles',&
-            HYMAP2_routing_struc(n)%nseqall_glb,&
-            dimID(1)),&
-            'nf90_def_dim failed for ntiles in HYMAP2_writeGlobalHeader_restart')
+       
+       if(HYMAP2_routing_struc(n)%useens.eq.0) then 
+          call LIS_verify(nf90_def_dim(ftn,'ntiles',&
+               LIS_rc%glbnroutinggrid(n),&
+               dimID(1)),&
+               'nf90_def_dim failed for ntiles in HYMAP2_writeGlobalHeader_restart')
+       else
+          call LIS_verify(nf90_def_dim(ftn,'ntiles',&
+               LIS_rc%glbnroutinggrid(n)*LIS_rc%nensem(n),&
+               dimID(1)),&
+               'nf90_def_dim failed for ntiles in HYMAP2_writeGlobalHeader_restart')
+       endif
        call LIS_verify(nf90_put_att(ftn,NF90_GLOBAL,"missing_value", &
             LIS_rc%udef),'nf90_put_att failed for missing_value')
        
@@ -530,6 +599,7 @@ subroutine HYMAP2_dump_restart(n, ftn)
   subroutine HYMAP2_writevar_restart(ftn, n, var, varid)
 ! !USES:
     use LIS_coreMod
+    use LIS_routingMod
     use LIS_mpiMod
     use LIS_logMod
     use HYMAP2_routingMod
@@ -541,7 +611,7 @@ subroutine HYMAP2_dump_restart(n, ftn)
 ! !ARGUMENTS: 
     integer, intent(in) :: ftn
     integer, intent(in) :: n
-    real                :: var(HYMAP2_routing_struc(n)%nseqall)
+    real                :: var(LIS_rc%nroutinggrid(n))
     integer             :: varid
 
 ! !DESCRIPTION:
@@ -554,49 +624,143 @@ subroutine HYMAP2_dump_restart(n, ftn)
 !   \item [ftn]
 !     unit number of the binary output file
 !   \item [var]
-!     variables being written, dimensioned in the tile space
+!     variable being written, dimensioned in the tile space
+!   \item [varid]
+!     index of the variable being written
 !  \end{description}
 !EOP
     real, allocatable :: gtmp(:)
     real, allocatable :: gtmp1(:)
-    integer           :: l,i,ix,iy,ix1,iy1
+    integer           :: l,i,ix,iy,ix1,iy1,m
     integer :: ierr
 
     if(LIS_masterproc) then 
-       allocate(gtmp(HYMAP2_routing_struc(n)%nseqall_glb))
-       allocate(gtmp1(HYMAP2_routing_struc(n)%nseqall_glb))
+       allocate(gtmp(LIS_rc%glbnroutinggrid(n)))
+       allocate(gtmp1(LIS_rc%glbnroutinggrid(n)))
     else
        allocate(gtmp1(1))
     endif
-#if (defined SPMD)      
-    call MPI_GATHERV(var,HYMAP2_routing_struc(n)%nseqall,&
+#if (defined SPMD)     
+    call MPI_GATHERV(var,LIS_rc%nroutinggrid(n),&
          MPI_REAL,gtmp1,&
-         HYMAP2_routing_struc(n)%gdeltas(:),&
-         HYMAP2_routing_struc(n)%goffsets(:),&
+         LIS_routing_gdeltas(n,:),&
+         LIS_routing_goffsets(n,:),&
          MPI_REAL,0,LIS_mpi_comm,ierr)
 #else 
-    gtmp1 = var
+       gtmp1 = var
 #endif
     if(LIS_masterproc) then
        do l=1,LIS_npes
-          do i=1,HYMAP2_routing_struc(n)%gdeltas(l-1)
+          do i=1,LIS_routing_gdeltas(n,l-1)
              ix = HYMAP2_routing_struc(n)%seqx_glb(i+&
-                  HYMAP2_routing_struc(n)%goffsets(l-1))
+                  LIS_routing_goffsets(n,l-1))
              iy = HYMAP2_routing_struc(n)%seqy_glb(i+&
-                  HYMAP2_routing_struc(n)%goffsets(l-1))
+                  LIS_routing_goffsets(n,l-1))
              ix1 = ix + LIS_ews_halo_ind(n,l) - 1
              iy1 = iy + LIS_nss_halo_ind(n,l)-1
              gtmp(HYMAP2_routing_struc(n)%sindex(ix1,iy1)) = &
-                  gtmp1(i+HYMAP2_routing_struc(n)%goffsets(l-1))
+                  gtmp1(i+LIS_routing_goffsets(n,l-1))
           enddo
        enddo
 #if ( defined USE_NETCDF3 || defined USE_NETCDF4 )
        ierr = nf90_put_var(ftn,varid,gtmp,(/1/),&
-            (/HYMAP2_routing_struc(n)%nseqall_glb/))
+               (/LIS_rc%glbnroutinggrid(n)/))
+       call LIS_verify(ierr,'nf90_put_var failed in LIS_historyMod')
+#endif   
+       deallocate(gtmp)       
+    endif
+    deallocate(gtmp1)
+  end subroutine HYMAP2_writevar_restart
+
+
+!BOP
+! !ROUTINE: HYMAP2_writevar_restart_ens
+! \label{HYMAP2_writevar_restart_ens}
+! 
+! !INTERFACE:
+! Private name: call using LIS_writevar_restart_ens
+  subroutine HYMAP2_writevar_restart_ens(ftn, n, var, varid)
+! !USES:
+    use LIS_coreMod
+    use LIS_routingMod
+    use LIS_mpiMod
+    use LIS_logMod
+    use HYMAP2_routingMod
+#if ( defined USE_NETCDF3 || defined USE_NETCDF4 )
+    use netcdf
+#endif
+
+    implicit none
+! !ARGUMENTS: 
+    integer, intent(in) :: ftn
+    integer, intent(in) :: n
+    real                :: var(LIS_rc%nroutinggrid(n),LIS_rc%nensem(n))
+    integer             :: varid
+
+! !DESCRIPTION:
+!  Writes a real variable to a NetCDF restart_ens file. 
+!
+!  The arguments are: 
+!  \begin{description}
+!   \item [n]
+!     index of the domain or nest.
+!   \item [ftn]
+!     unit number of the binary output file
+!   \item [var]
+!     variable being written, dimensioned in the tile space
+!   \item [varid]
+!     index of the variable being written
+!  \end{description}
+!EOP
+    real, allocatable :: gtmp(:)
+    real, allocatable :: gtmp2(:)
+    real, allocatable :: gtmp1(:,:)
+    integer           :: m
+    integer           :: l,i,ix,iy,ix1,iy1
+    integer :: ierr
+
+    if(LIS_masterproc) then 
+       allocate(gtmp(LIS_rc%glbnroutinggrid(n)*LIS_rc%nensem(n)))
+       allocate(gtmp1(LIS_rc%glbnroutinggrid(n),LIS_rc%nensem(n)))
+    else
+       allocate(gtmp1(1,LIS_rc%nensem(n)))
+    endif
+    do m=1,LIS_rc%nensem(n)  
+#if (defined SPMD)    
+       call MPI_GATHERV(var(:,m),LIS_rc%nroutinggrid(n),&
+            MPI_REAL,gtmp1(:,m),&
+            LIS_routing_gdeltas(n,:),&
+            LIS_routing_goffsets(n,:),&
+            MPI_REAL,0,LIS_mpi_comm,ierr)
+#else
+       gtmp1(:,m) = var(:,m)
+#endif
+    enddo
+    if(LIS_masterproc) then
+       do l=1,LIS_npes
+          do i=1,LIS_routing_gdeltas(n,l-1)
+             do m=1,LIS_rc%nensem(n)  
+
+                ix = HYMAP2_routing_struc(n)%seqx_glb(i+&
+                     LIS_routing_goffsets(n,l-1))
+                iy = HYMAP2_routing_struc(n)%seqy_glb(i+&
+                     LIS_routing_goffsets(n,l-1))
+                ix1 = ix + LIS_ews_halo_ind(n,l) - 1
+                iy1 = iy + LIS_nss_halo_ind(n,l)-1
+
+                gtmp(m + (HYMAP2_routing_struc(n)%sindex(ix1,iy1) -1)* &
+                     LIS_rc%nensem(n)) = &
+                     gtmp1(i+LIS_routing_goffsets(n,l-1),m)
+             enddo
+          enddo
+       enddo    
+#if ( defined USE_NETCDF3 || defined USE_NETCDF4 )
+       ierr = nf90_put_var(ftn,varid,gtmp,(/1/),&
+            (/LIS_rc%glbnroutinggrid(n)*LIS_rc%nensem(n)/))
        call LIS_verify(ierr,'nf90_put_var failed in LIS_historyMod')
 #endif   
        deallocate(gtmp)       
     endif
     deallocate(gtmp1)
 
-  end subroutine HYMAP2_writevar_restart
+  end subroutine HYMAP2_writevar_restart_ens

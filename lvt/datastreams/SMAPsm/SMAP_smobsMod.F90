@@ -1,6 +1,12 @@
-!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------------
-! NASA GSFC Land surface Verification Toolkit (LVT) V1.0
-!-------------------------END NOTICE -- DO NOT EDIT-----------------------------
+!-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
+!-------------------------END NOTICE -- DO NOT EDIT-----------------------
 !BOP
 ! 
 ! !MODULE: SMAP_smobsMod
@@ -76,7 +82,6 @@ contains
   subroutine SMAP_smobsinit(i)
 ! 
 ! !USES: 
-    use ESMF
     use LVT_coreMod
     use LVT_histDataMod
     use LVT_timeMgrMod
@@ -245,9 +250,7 @@ contains
     allocate(SMAP_smobs(i)%smtime(LVT_rc%lnc,LVT_rc%lnr))
     allocate(SMAP_smobs(i)%smqc(LVT_rc%lnc*LVT_rc%lnr,2))
 
-!-------------------------------------------------------------------------
-!  AMSRE data contains the a top soil soil moisture data
-!-------------------------------------------------------------------------
+    call system("mkdir -p "//trim('SMAPsm'))
 
   end subroutine SMAP_smobsinit
 

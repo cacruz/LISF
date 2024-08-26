@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_albedoMod
@@ -31,6 +37,7 @@ module LDT_albedoMod
   use LDT_historyMod
   use LDT_paramDataMod
   use LDT_logMod
+  use LDT_constantsMod, only : LDT_CONST_PATH_LEN
   use LDT_paramMaskCheckMod
 
   implicit none
@@ -54,14 +61,14 @@ module LDT_albedoMod
      real             :: alb_gridDesc(20)
      character*50     :: alb_proj
      character*50     :: alb_gridtransform
-     character*100    :: albdir
-     character*140    :: albfile
+     character(len=LDT_CONST_PATH_LEN)    :: albdir
+     character(len=LDT_CONST_PATH_LEN)    :: albfile
      character*20     :: albInterval
 
      real             :: mxsnoalb_gridDesc(20)
      character*50     :: mxsnoalb_proj
      character*50     :: mxsnoalb_gridtransform
-     character*100    :: mxsnoalbfile
+     character(len=LDT_CONST_PATH_LEN)    :: mxsnoalbfile
 
    ! Albedo parameters
      type(LDT_paramEntry) :: albedo      ! Climatology-based albedo
@@ -262,14 +269,14 @@ contains
     real, allocatable              :: alb_gridDesc(:,:)
     character*50                   :: alb_proj
     character*50,  allocatable     :: alb_gridtransform(:)
-    character*100, allocatable     :: albdir(:)
-    character*140, allocatable     :: albfile(:)
+    character(len=LDT_CONST_PATH_LEN), allocatable     :: albdir(:)
+    character(len=LDT_CONST_PATH_LEN), allocatable     :: albfile(:)
     character*20,  allocatable     :: albInterval(:)
 
     real, allocatable              :: mxsnoalb_gridDesc(:,:)
     character*50                   :: mxsnoalb_proj
     character*50,  allocatable     :: mxsnoalb_gridtransform(:)
-    character*100, allocatable     :: mxsnoalbfile(:)
+    character(len=LDT_CONST_PATH_LEN), allocatable     :: mxsnoalbfile(:)
 ! ______________________________________________________________________
 
     alb_select = .false. 

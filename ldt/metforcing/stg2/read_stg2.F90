@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA Goddard Space Flight Center Land Data Toolkit (LDT) v7.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 !BOP
@@ -27,7 +33,7 @@ subroutine read_stg2( n, fname, findex, order, ferror_stg2 )
   implicit none
 ! !ARGUMENTS:
   integer, intent(in) :: n
-  character(len=80)   :: fname          
+  character(len=*)   :: fname          
   integer, intent(in) :: findex
   integer, intent(in) :: order
   integer             :: ferror_stg2
@@ -80,7 +86,7 @@ subroutine read_stg2( n, fname, findex, order, ferror_stg2 )
 !-- Check initially if file exists:
   inquire (file=fname, exist=file_exists ) ! Check if file exists
   if (.not. file_exists)  then 
-     write(LDT_logunit,*)"** Missing STAGE IV precipitation file: ", fname
+     write(LDT_logunit,*)"** Missing STAGE IV precipitation file: ", trim(fname)
      ferror_stg2 = 1
      return
   endif

@@ -1,5 +1,11 @@
 !-----------------------BEGIN NOTICE -- DO NOT EDIT-----------------------
-! NASA GSFC Land Data Toolkit (LDT) V1.0
+! NASA Goddard Space Flight Center
+! Land Information System Framework (LISF)
+! Version 7.5
+!
+! Copyright (c) 2024 United States Government as represented by the
+! Administrator of the National Aeronautics and Space Administration.
+! All Rights Reserved.
 !-------------------------END NOTICE -- DO NOT EDIT-----------------------
 #include "LDT_misc.h"
 module LDT_soilsMod
@@ -268,7 +274,6 @@ module LDT_soilsMod
   subroutine soils_init_LIS()
 
 ! !USES:
-    use ESMF
     use LDT_coreMod,   only : LDT_rc, LDT_config
     use LDT_fileIOMod, only : LDT_readDomainConfigSpecs
     use LDT_paramOptCheckMod, only: LDT_soilsOptChecks, & 
@@ -777,7 +782,7 @@ module LDT_soilsMod
             elseif(INDEX(LDT_LSMparam_struc(n)%texture%source,"ZOBLER") >0) then 
                soiltext%watervalue = 1.0
             elseif(INDEX(LDT_LSMparam_struc(n)%texture%source,"ISRIC") >0) then 
-               soiltext%watervalue = 13.
+               soiltext%watervalue = 14.
             else
                soiltext%watervalue = LDT_rc%udef
             endif
@@ -962,7 +967,6 @@ module LDT_soilsMod
   subroutine soils_init_LISHydro(flag)
 
 ! !USES:
-    use ESMF
     use LDT_coreMod,   only : LDT_rc, LDT_config
     use LDT_fileIOMod, only : LDT_readDomainConfigSpecs
     use LDT_paramOptCheckMod, only: LDT_soilsOptChecks, & 
@@ -1480,7 +1484,7 @@ module LDT_soilsMod
             elseif(INDEX(LDT_LSMparam_struc(n)%texture%source,"ZOBLER") >0) then 
                soiltext%watervalue = 1.0
             elseif(INDEX(LDT_LSMparam_struc(n)%texture%source,"ISRIC") >0) then 
-               soiltext%watervalue = 13.
+               soiltext%watervalue = 14.
             else
                soiltext%watervalue = LDT_rc%udef
             endif
@@ -1810,7 +1814,7 @@ module LDT_soilsMod
               14))
       elseif( LDT_rc%soil_classification(1) == "ISRIC" ) then
          call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"NUMBER_SOILTYPES", &
-              13))
+              19))
       else
          call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"NUMBER_SOILTYPES", &
               19))
@@ -1968,7 +1972,7 @@ module LDT_soilsMod
               14))
       elseif( LDT_rc%soil_classification(1) == "ISRIC" ) then
          call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"NUMBER_SOILTYPES", &
-              13))
+              19))
       else
          call LDT_verify(nf90_put_att(ftn,NF90_GLOBAL,"NUMBER_SOILTYPES", &
               19))
